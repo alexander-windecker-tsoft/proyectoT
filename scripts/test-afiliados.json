@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "test:afiliados": "playwright test afiliados-principales.spec.ts --headed",
+    "test:afiliados-all": "playwright test afiliados*.spec.ts --headed",
+    "test:afiliados-ui": "playwright test afiliados-principales.spec.ts --ui"
+  }
+}
