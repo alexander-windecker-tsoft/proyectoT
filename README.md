@@ -29,54 +29,64 @@ Sistema completo de gestión de afiliados para Club de Natación AquaLife desarr
 ## 🚀 Tecnologías Utilizadas
 
 ### Frontend
+
 - **React 18** - Biblioteca de interfaz de usuario
 - **TypeScript** - Tipado estático para JavaScript
 - **React Router DOM** - Navegación y ruteo
 - **CSS Modules** - Estilos encapsulados
 
 ### Base de Datos
+
 - **SQLite** - Base de datos relacional ligera
 - **sql.js** - SQLite compilado a WebAssembly
 - **localStorage** - Persistencia en navegador
 
 ### Testing
+
 - **Playwright** - Framework de testing end-to-end
 - **Page Object Model** - Patrón de diseño para tests mantenibles
 
 ### Desarrollo
+
 - **Vite** - Build tool y dev server ultra-rápido
 - **ESLint** - Linter para mantener calidad del código
 
 ## 📦 Instalación y Configuración
 
 ### Prerrequisitos
+
 - Node.js 16 o superior
 - npm o yarn
 
 ### 🔧 Instalación
 
 1. **Clonar el repositorio**
+
    ```bash
    git clone https://github.com/alexander-windecker-tsoft/proyectoT.git
    cd proyectoT
    ```
 
 2. **Instalar dependencias**
+
    ```bash
    npm install
    ```
 
 3. **Instalar navegadores para testing**
+
    ```bash
    npx playwright install
    ```
 
 4. **Ejecutar en modo desarrollo**
+
    ```bash
    npm run dev
    ```
 
 5. **Abrir en el navegador**
+
    ```
    http://localhost:5173
    ```
@@ -84,6 +94,7 @@ Sistema completo de gestión de afiliados para Club de Natación AquaLife desarr
 ## 🧪 Testing
 
 ### Ejecutar Tests
+
 ```bash
 # Todos los tests
 npm run test
@@ -99,6 +110,7 @@ npx playwright test --ui
 ```
 
 ### Ver Reportes
+
 ```bash
 # Abrir último reporte
 npx playwright show-report
@@ -137,6 +149,7 @@ npx playwright show-report
 ## 🎯 Funcionalidades Detalladas
 
 ### 🔐 Sistema de Autenticación
+
 - Login multi-usuario con validación de credenciales
 - Persistencia de sesión en localStorage
 - Control granular de permisos por rol
@@ -145,34 +158,40 @@ npx playwright show-report
 ### 👥 Gestión de Afiliados
 
 #### ✅ Crear Afiliados
+
 - Formulario completo con validaciones en tiempo real
 - Campos obligatorios y opcionales
 - Validación de DNI único
 - Validación de formato de email
 
 #### 📋 Visualizar Afiliados
+
 - Lista paginada y ordenable
 - Búsqueda por nombre, apellido o DNI
 - Filtrado por estado (activo/inactivo)
 - Vista responsive para móviles
 
 #### ✏️ Editar Afiliados
+
 - Formulario pre-poblado con datos existentes
 - Validaciones de integridad de datos
 - Confirmación de cambios
 
 #### 🗑️ Eliminar Afiliados
+
 - Confirmación antes de eliminar
 - Eliminación lógica (soft delete)
 
 ### 🛡️ Control de Acceso
 
 #### Administrador/Inspector
+
 - ✅ Acceso completo a todas las funciones
 - ✅ Crear, editar y eliminar afiliados
 - ✅ Ver estadísticas y reportes
 
 #### Facturación
+
 - ✅ Visualización de datos de afiliados
 - ❌ Campos en modo solo lectura
 - ❌ Botones de acción deshabilitados
@@ -183,6 +202,7 @@ npx playwright show-report
 ### ✅ Tests Implementados
 
 #### Autenticación (`login.spec.ts`)
+
 - ✅ Renderizado del formulario de login
 - ✅ Login exitoso como administrador
 - ✅ Login exitoso como inspector  
@@ -191,6 +211,7 @@ npx playwright show-report
 - ✅ Verificación de roles en perfil
 
 #### Gestión de Afiliados (`afiliados-gestion.spec.ts`)
+
 - ✅ Validación de botón guardar
 - ✅ Campos obligatorios
 - ✅ Funcionalidades de lista
@@ -233,8 +254,9 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 ## 👨‍💻 Autor
 
 **Alexander Windecker** - *TSoft Global*
+
 - GitHub: [@alexander-windecker-tsoft](https://github.com/alexander-windecker-tsoft)
-- Email: alexander.windecker@tsoftglobal.com
+- Email: <alexander.windecker@tsoftglobal.com>
 
 ## 🙏 Agradecimientos
 
