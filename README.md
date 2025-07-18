@@ -87,7 +87,7 @@ Sistema completo de gestión de afiliados para Club de Natación AquaLife desarr
 
 5. **Abrir en el navegador**
 
-   ```
+   ``` host
    http://localhost:5173
    ```
 
@@ -118,7 +118,7 @@ npx playwright show-report
 
 ## 📁 Estructura del Proyecto
 
-```
+```Carpetas
 📦 react-ts-login/
 ├── 📂 src/
 │   ├── 📂 components/          # Componentes React

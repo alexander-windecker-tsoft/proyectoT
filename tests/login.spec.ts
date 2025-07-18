@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from './pages/loginPage';
+import { AfiliadosFormPage } from './pages/afiliadosFormPage';
+import { AfiliadosListPage } from './pages/afiliadosListPage';
 
 test.describe('Club de Natación AquaLife - Inicio de Sesión', () => {
   test('Validar que se muestre el formulario de inicio de sesión', async ({ page }) => {
@@ -115,5 +117,32 @@ test.describe('Club de Natación AquaLife - Inicio de Sesión', () => {
     // Verificar que muestra el rol de Inspector
     await expect(page.locator('.profile-info')).toContainText('Rol: Inspector');
     await expect(page.locator('.profile-info')).toContainText('Usuario: inspector');
+  });
+
+  test('Validar que el usuario inspector tenga acceso completo al formulario de afiliados', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    const afiliadosFormPage = new AfiliadosFormPage(page);
+    const afiliadosListPage = new AfiliadosListPage(page);
+    
+    // Login como inspector
+    await loginPage.login('inspector', 'inspector123');
+    await page.waitForURL('/dashboard');
+    
+    // Ir al formulario de afiliados
+    await afiliadosFormPage.navegarAFormularioNuevo();
+    
+    // Verificar que todos los campos están habilitados (no readonly)
+    await expect(afiliadosFormPage.nombreInput).not.toHaveAttribute('readonly');
+    await expect(afiliadosFormPage.apellidosInput).not.toHaveAttribute('readonly');
+    await expect(afiliadosFormPage.dniInput).not.toHaveAttribute('readonly');
+    
+    // Completar formulario y verificar que puede guardar
+    const datosObligatorios = afiliadosFormPage.getDatosObligatoriosValidos();
+    await afiliadosFormPage.completarCamposObligatorios(datosObligatorios);
+    await afiliadosFormPage.verificarBotonGuardarHabilitado();
+    
+    // Verificar que puede acceder a la lista y ver botones de edición
+    await afiliadosListPage.navegarALista();
+    await expect(page.locator('button:has-text("Nuevo Afiliado")')).toBeVisible();
   });
 });
