@@ -5,7 +5,7 @@ import { getEnvironmentConfig, getCurrentEnvironment, isDevelopment, isProductio
 // Extender el test base con configuración de ambiente
 export const test = baseTest.extend({
   // Configurar página con settings del ambiente
-  page: async ({ page }, use) => {
+  page: async ({ page }, /* Playwright fixture function */ use) => {
     const envConfig = getEnvironmentConfig();
     
     // Configurar timeouts específicos del ambiente
@@ -15,7 +15,8 @@ export const test = baseTest.extend({
     // Configurar wait for load state por defecto
     await page.goto('/', { waitUntil: 'networkidle' });
     
-    await use(page);
+    // Playwright fixture usage (not React hook)
+    await use(page); // eslint-disable-line react-hooks/rules-of-hooks
   },
 });
 

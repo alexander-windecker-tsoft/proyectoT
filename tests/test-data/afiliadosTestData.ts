@@ -2,6 +2,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import type { Page } from '@playwright/test';
 
 // Fix para __dirname en ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -13,7 +14,7 @@ function loadTestDataFromJSON() {
     const dataPath = path.join(__dirname, 'afiliadosTestData.json');
     const testData = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
     return testData;
-  } catch (error) {
+  } catch {
     // Fallback a datos básicos
     return {
       validUser: {
@@ -52,7 +53,7 @@ export const TestHelpers = {
     const templateData = jsonData.templates[templateKey];
     
     // Reemplazar placeholders en el template
-    const processedData: any = {};
+    const processedData: Record<string, unknown> = {};
     
     Object.keys(templateData).forEach(key => {
       let value = templateData[key];
@@ -67,17 +68,19 @@ export const TestHelpers = {
   },
 
   // Generar datos desde template personalizado
-  generateFromTemplate: (customTemplate: any) => {
+  generateFromTemplate: (customTemplate: Record<string, unknown>) => {
     const timestamp = Date.now();
-    const processedData: any = {};
+    const processedData: Record<string, unknown> = {};
     
     Object.keys(customTemplate).forEach(key => {
       let value = customTemplate[key];
       if (typeof value === 'string') {
         value = value.replace('{TIMESTAMP}', timestamp.toString());
         value = value.replace('{TIMESTAMP_8}', timestamp.toString().slice(-8));
+        processedData[key] = value;
+      } else {
+        processedData[key] = value;
       }
-      processedData[key] = value;
     });
     
     return processedData;
@@ -89,21 +92,21 @@ export const TestHelpers = {
   },
 
   // Limpiar localStorage antes de tests
-  clearLocalStorage: async (page: any) => {
+  clearLocalStorage: async (page: Page) => {
     await page.evaluate(() => {
       localStorage.clear();
     });
   },
 
   // Establecer datos iniciales en localStorage
-  setupInitialData: async (page: any, afiliados: any[] = []) => {
+  setupInitialData: async (page: Page, afiliados: unknown[] = []) => {
     await page.evaluate((data) => {
       localStorage.setItem('afiliados', JSON.stringify(data));
     }, afiliados);
   },
 
   // Verificar datos en localStorage
-  getLocalStorageData: async (page: any) => {
+  getLocalStorageData: async (page: Page) => {
     return await page.evaluate(() => {
       const data = localStorage.getItem('afiliados');
       return data ? JSON.parse(data) : [];

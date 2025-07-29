@@ -18,12 +18,14 @@ El **test de regresión** en nuestro CI/CD verifica que **TODOS los tests** pase
 ### 1. 🤖 **Automático (CI/CD)**
 
 #### ✅ Automático en `main`
+
 ```bash
 # Se ejecuta automáticamente cuando haces push a main
 git push origin main
 ```
 
 #### 🔧 Manual desde GitHub Actions
+
 1. Ve a **Actions** → **CI & Regression - Continuous Integration & Testing**
 2. Click **Run workflow**
 3. Selecciona:
@@ -34,6 +36,7 @@ git push origin main
 ### 2. 💻 **Local (Scripts)**
 
 #### Script PowerShell (Recomendado para Windows)
+
 ```powershell
 # Regresión completa (TODOS los tests en todos los ambientes)
 .\run-regression.ps1
@@ -49,6 +52,7 @@ git push origin main
 ```
 
 #### Script Bash (Linux/macOS)
+
 ```bash
 # Regresión completa
 ./run-regression.sh
@@ -61,6 +65,7 @@ chmod +x run-regression.sh
 ```
 
 #### Comandos NPM directos
+
 ```bash
 # Tests marcados con @regression únicamente
 npm run test:regression
@@ -78,6 +83,7 @@ npm run regression:complete
 ```
 
 ### 3. 🔧 **Scripts batch existentes**
+
 ```batch
 # Regresión con el script mejorado
 run-tests.bat dev regression
@@ -88,6 +94,7 @@ run-tests.bat prod regression
 ## 🏷️ Cómo marcar tests para regresión
 
 ### Opción 1: Tag @regression (Solo tests específicos)
+
 ```javascript
 // En tus archivos .spec.ts
 test('Login completo @regression', async ({ page }) => {
@@ -100,6 +107,7 @@ test('CRUD de afiliados @regression', async ({ page }) => {
 ```
 
 ### Opción 2: Regresión completa (TODOS los tests)
+
 No necesitas tags. El sistema ejecuta **TODOS** los tests existentes.
 
 ## 📊 Configuración del CI/CD
@@ -135,7 +143,8 @@ Matrix:
 ## 📈 Reportes y Artefactos
 
 ### 📁 Ubicación de reportes locales
-```
+
+```text
 regression-reports/
 ├── dev-chromium/
 │   └── index.html
@@ -146,6 +155,7 @@ regression-reports/
 ```
 
 ### 🏷️ Artefactos de CI/CD
+
 - **Retención**: 60 días (vs 30 días para tests standard)
 - **Naming**: `regression-report-{environment}-{browser}`
 - **Incluye**: HTML reports + raw test results
@@ -153,6 +163,7 @@ regression-reports/
 ## 🎛️ Configuraciones avanzadas
 
 ### 🚀 Ejecutar con parámetros específicos
+
 ```powershell
 # Solo en staging, con Firefox, sin reportes
 .\run-regression.ps1 -Environment staging -Browser firefox -SkipReport
@@ -165,6 +176,7 @@ regression-reports/
 ```
 
 ### 🔧 Variables de ambiente
+
 ```bash
 # Para scripts personalizados
 export TEST_ENV=staging
@@ -175,12 +187,14 @@ npx playwright test
 ## 🎯 Mejores prácticas
 
 ### ✅ **DO - Recomendado**
+
 - ✅ Ejecuta regresión antes de releases importantes
 - ✅ Usa regresión completa para validar cambios críticos
 - ✅ Revisa los reportes cuando fallen tests
 - ✅ Ejecuta regresión local antes de push a main
 
 ### ❌ **DON'T - Evitar**
+
 - ❌ No ejecutes regresión en cada PR (es muy lento)
 - ❌ No ignores fallos de regresión
 - ❌ No hagas push a main sin validar localmente
@@ -188,17 +202,20 @@ npx playwright test
 ## 🚨 Solución de problemas
 
 ### ❌ Error: "Tests failed in regression"
+
 1. **Revisa el reporte HTML** en `regression-reports/`
 2. **Identifica el test fallido** y el ambiente
 3. **Ejecuta localmente** ese ambiente específico
 4. **Debuggea** con `--debug` si es necesario
 
 ### ⚠️ Warning: "Regression taking too long"
+
 1. **Considera usar** `--workers=2` para paralelizar
 2. **Ejecuta solo ambiente específico** durante desarrollo
 3. **Usa TaggedOnly** para tests críticos únicamente
 
 ### 🔧 Error: "Environment not responding"
+
 1. **Verifica** que el servidor esté corriendo (port 3001)
 2. **Revisa** la configuración en `environments.json`
 3. **Valida** conectividad de red

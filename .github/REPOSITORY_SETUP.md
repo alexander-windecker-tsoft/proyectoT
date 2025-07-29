@@ -1,12 +1,15 @@
 # GitHub Actions Settings
+
 # Este archivo documenta las configuraciones recomendadas para el repositorio
 
 ## 🔧 Repository Settings
 
 ### Branch Protection Rules
+
 Configurar en: Settings → Branches → Add rule
 
 **Para rama `main`:**
+
 - [x] Require pull request reviews before merging
   - Required number of reviewers: 1
   - [x] Dismiss stale PR approvals when new commits are pushed
@@ -22,6 +25,7 @@ Configurar en: Settings → Branches → Add rule
 - [x] Include administrators
 
 **Para rama `develop`:**
+
 - [x] Require pull request reviews before merging
   - Required number of reviewers: 1
 - [x] Require status checks to pass before merging
@@ -30,21 +34,25 @@ Configurar en: Settings → Branches → Add rule
     - `CI / Playwright Tests (dev, chromium)`
 
 ### Environment Protection Rules
+
 Configurar en: Settings → Environments
 
 **Environment: `production`**
+
 - [x] Required reviewers: [admin-users]
 - [x] Wait timer: 0 minutes
 - [x] Deployment branches: Selected branches
   - Add branch: `main`
 
 **Environment: `staging`**
+
 - [x] Deployment branches: Selected branches
   - Add branches: `main`, `develop`
 
 ## 🎯 Actions Permissions
 
 ### General Settings
+
 Configurar en: Settings → Actions → General
 
 - **Actions permissions**: Allow all actions and reusable workflows
@@ -53,12 +61,14 @@ Configurar en: Settings → Actions → General
 - [x] Allow GitHub Actions to create and approve pull requests
 
 ### Artifact and log retention
+
 - **Artifact and log retention**: 90 days (para releases importantes)
 - **Default retention**: 30 days (para CI regular)
 
 ## 🔐 Repository Secrets
 
 ### Required Secrets (ninguno por defecto)
+
 Los workflows utilizan `GITHUB_TOKEN` automático.
 
 ### Optional Secrets (configurar según necesidad)
@@ -86,6 +96,7 @@ SONAR_TOKEN                   # Para análisis SonarQube
 ## 📊 Status Checks Configuration
 
 ### Required Status Checks
+
 Para configurar en Branch Protection Rules:
 
 ```yaml
@@ -109,6 +120,7 @@ Para configurar en Branch Protection Rules:
 ## 🚀 Auto-merge Configuration
 
 ### Setup Auto-merge (opcional)
+
 ```yaml
 # En PR template (.github/pull_request_template.md)
 - [ ] Tests pasan
@@ -126,6 +138,7 @@ Para configurar en Branch Protection Rules:
 ## 📝 Issue and PR Templates
 
 ### Issue Template
+
 ```yaml
 # .github/ISSUE_TEMPLATE/bug_report.yml
 name: Bug Report
@@ -155,6 +168,7 @@ body:
 ```
 
 ### PR Template
+
 ```yaml
 # .github/pull_request_template.md
 ## 📋 Description
@@ -181,6 +195,7 @@ Visual changes or new features
 ## 🏷️ Labels Configuration
 
 ### Suggested Labels
+
 ```yaml
 # Type
 - bug: Bug reports
@@ -214,6 +229,7 @@ Visual changes or new features
 ## 🔄 Workflow Dispatch Inputs
 
 ### Common Workflow Inputs
+
 ```yaml
 # Para workflows manuales
 environment:
@@ -254,12 +270,14 @@ debug_mode:
 ## 📈 Monitoring and Metrics
 
 ### GitHub Insights to Monitor
+
 - **Actions usage**: Monitor workflow execution time and costs
 - **Code frequency**: Track deployment frequency
 - **Pull requests**: Monitor review times and merge rates
 - **Issues**: Track bug reports and feature requests
 
 ### Custom Metrics (via workflows)
+
 - Test execution time per environment
 - Deployment success rate
 - Test failure patterns
@@ -268,6 +286,7 @@ debug_mode:
 ## 🛡️ Security Considerations
 
 ### Dependabot Configuration
+
 ```yaml
 # .github/dependabot.yml
 version: 2
@@ -286,6 +305,7 @@ updates:
 ```
 
 ### CodeQL Analysis
+
 ```yaml
 # .github/workflows/codeql-analysis.yml
 name: "CodeQL"

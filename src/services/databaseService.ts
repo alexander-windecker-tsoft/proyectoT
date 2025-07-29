@@ -256,9 +256,9 @@ class DatabaseService {
       this.saveToLocalStorage();
 
       return insertId;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Verificar si es un error de restricción UNIQUE
-      if (error.message && error.message.includes('UNIQUE constraint failed')) {
+      if (error instanceof Error && error.message && error.message.includes('UNIQUE constraint failed')) {
         if (error.message.includes('dni')) {
           throw new Error('Ya existe un afiliado con ese DNI');
         } else if (error.message.includes('email')) {

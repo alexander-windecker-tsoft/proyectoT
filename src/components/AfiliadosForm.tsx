@@ -287,13 +287,13 @@ const AfiliadosForm: React.FC = () => {
       
       console.log('Datos del afiliado guardados en la base de datos:', formData);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error al guardar afiliado:', error);
       
       let errorMessage = 'Error al guardar datos. Intente nuevamente.';
       
       // Mostrar mensajes de error más específicos
-      if (error.message) {
+      if (error instanceof Error && error.message) {
         if (error.message.includes('Ya existe un afiliado con ese DNI')) {
           errorMessage = 'Ya existe un afiliado registrado con ese DNI';
         } else if (error.message.includes('Ya existe un afiliado con ese email')) {

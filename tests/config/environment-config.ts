@@ -31,7 +31,7 @@ export interface TestConfig {
     navigationTimeout: number;
     expectTimeout: number;
   };
-  reporting: Record<string, any>;
+  reporting: Record<string, unknown>;
   database: Record<string, { resetBetweenTests: boolean; seedData: boolean }>;
 }
 

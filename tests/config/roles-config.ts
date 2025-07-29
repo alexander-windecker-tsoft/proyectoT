@@ -34,7 +34,7 @@ function loadRolesFromJSON() {
     const configPath = path.join(__dirname, 'roles.json');
     const rolesData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
     return rolesData;
-  } catch (error) {
+  } catch {
     // Fallback a configuración por defecto
     return {
       currentRoles: [

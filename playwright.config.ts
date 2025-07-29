@@ -41,13 +41,13 @@ export default defineConfig({
     navigationTimeout: fullConfig.testSettings.navigationTimeout,
 
     /* Collect trace based on environment */
-    trace: envConfig.trace as any,
+    trace: envConfig.trace as 'on' | 'off' | 'retain-on-failure' | 'on-first-retry',
     
     /* Video recording based on environment */
-    video: envConfig.video as any,
+    video: envConfig.video as 'off' | 'on' | 'retain-on-failure' | 'on-first-retry',
     
     /* Screenshot on failure based on environment */
-    screenshot: envConfig.screenshot as any,
+    screenshot: envConfig.screenshot as 'off' | 'on' | 'only-on-failure',
   },
 
   /* Configure projects for major browsers */
