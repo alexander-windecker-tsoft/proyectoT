@@ -69,6 +69,15 @@ export class AfiliadosListPage {
     }
 
     async verificarAfiliadoEnLista(nombre: string, apellidos: string, dni: string) {
+        // Esperar a que la página cargue completamente
+        await this.page.waitForLoadState('networkidle');
+        
+        // Hacer una búsqueda rápida para forzar la actualización
+        await this.searchInput.fill(dni);
+        await this.page.waitForTimeout(500);
+        await this.searchInput.fill('');
+        await this.page.waitForTimeout(300);
+        
         const filaAfiliado = this.tableRows.filter({
             has: this.page.locator('td', { hasText: nombre })
         }).filter({
@@ -77,7 +86,7 @@ export class AfiliadosListPage {
             has: this.page.locator('td', { hasText: dni })
         });
         
-        await expect(filaAfiliado).toBeVisible();
+        await expect(filaAfiliado).toBeVisible({ timeout: 5000 });
         return filaAfiliado;
     }
 

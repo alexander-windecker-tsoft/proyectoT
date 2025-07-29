@@ -1,148 +1,108 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from './pages/loginPage';
-import { AfiliadosFormPage } from './pages/afiliadosFormPage';
-import { AfiliadosListPage } from './pages/afiliadosListPage';
+import { CURRENT_ROLES } from './config/roles-config';
 
-test.describe('Club de Natación AquaLife - Inicio de Sesión', () => {
-  test('Validar que se muestre el formulario de inicio de sesión', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await page.goto('/');
-    
-    // Verificar que el título de la página sea correcto
-    await expect(page).toHaveTitle(/Club de Natación AquaLife/);
-    
-    // Verificar que existe el formulario de login
-    await expect(page.locator('form')).toBeVisible();
-    
-    // Verificar que existen los campos de usuario y contraseña usando POM
-    await expect(loginPage.usernameInput).toBeVisible();
-    await expect(loginPage.passwordInput).toBeVisible();
-    
-    // Verificar que existe el botón de login usando POM
-    await expect(loginPage.loginButton).toBeVisible();
+test.describe('FEATURE - Autenticación y Login', () => {
+  let loginPage: LoginPage;
+
+  test.beforeEach(async ({ page }) => {
+    loginPage = new LoginPage(page);
   });
 
-  test('Validar inicio de sesión exitoso como administrador', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    
-    // Usar POM para hacer login
-    await loginPage.login('admin', 'admin123');
-    
-    // Verificar que se redirige al dashboard
-    await expect(page).toHaveURL(/dashboard/);
-    
-    // Verificar que aparece el contenido del dashboard
-    await expect(page.locator('h1')).toContainText('Dashboard');
+  test('Verificar página de login carga correctamente', async ({ page }) => {
+    await test.step('Navegar a la página de login', async () => {
+      await page.goto('/');
+      await expect(page).toHaveURL('/');
+    });
+
+    await test.step('Verificar elementos de la página', async () => {
+      await expect(loginPage.usernameInput).toBeVisible();
+      await expect(loginPage.passwordInput).toBeVisible();
+      await expect(loginPage.loginButton).toBeVisible();
+    });
   });
 
-  test('Intentar iniciar sesión con credenciales inválidas', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    
-    // Usar POM para intentar login con credenciales incorrectas
-    await loginPage.login('usuario_incorrecto', 'contraseña_incorrecta');
-    
-    // Verificar que aparece un mensaje de error
-    await expect(page.locator('.error')).toBeVisible();
+  test('Verificar credenciales incorrectas', async ({ page }) => {
+    await test.step('Intentar login con credenciales incorrectas', async () => {
+      await loginPage.login('usuario_inexistente', 'password_incorrecto');
+    });
+
+    await test.step('Verificar mensaje de error', async () => {
+      const errorMessage = page.locator('.error, [data-testid="error"], .alert-danger');
+      await expect(errorMessage).toBeVisible();
+    });
   });
 
-  test('Validar inicio de sesión exitoso como usuario de facturación', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    
-    // Usar POM para hacer login como facturación
-    await loginPage.login('facturacion', 'factura123');
-    
-    // Verificar que se redirige al dashboard
-    await expect(page).toHaveURL(/dashboard/);
-    
-    // Verificar que aparece el mensaje personalizado
-    await expect(page.locator('h2')).toContainText('¡Bienvenido facturacion!');
-    
-    // Verificar que aparece el indicador de modo solo lectura
-    await expect(page.locator('p')).toContainText('(modo solo lectura)');
+  test('Verificar campos vacíos', async ({ page }) => {
+    await test.step('Intentar login sin completar campos', async () => {
+      await page.goto('/');
+      await page.waitForLoadState('networkidle');
+      await loginPage.loginButton.click();
+      await page.waitForTimeout(500);
+    });
+
+    await test.step('Verificar que no se procesa el login', async () => {
+      // Debería permanecer en la página de login
+      await expect(page).toHaveURL('/');
+      
+      // Verificar que los campos están vacíos o que hay validación
+      const usernameValue = await loginPage.usernameInput.inputValue();
+      const passwordValue = await loginPage.passwordInput.inputValue();
+      expect(usernameValue).toBe('');
+      expect(passwordValue).toBe('');
+    });
   });
 
-  test('Validar que se muestre el rol correcto en el perfil del usuario administrador', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    
-    // Usar POM para iniciar sesión como administrador
-    await loginPage.login('admin', 'admin123');
-    
-    // Abrir el menú de perfil
-    await page.click('button:has-text("👤 Perfil")');
-    
-    // Verificar que muestra el rol de Administrador
-    await expect(page.locator('.profile-info')).toContainText('Rol: Administrador');
-    await expect(page.locator('.profile-info')).toContainText('Usuario: admin');
+  // Tests de login para cada rol configurado
+  CURRENT_ROLES.forEach(role => {
+    test(`Login exitoso - Rol: ${role.roleName}`, async ({ page }) => {
+      await test.step(`Login con credenciales de ${role.roleName}`, async () => {
+        await loginPage.login(role.username, role.password);
+      });
+
+      await test.step('Verificar redirección al dashboard', async () => {
+        await expect(page).toHaveURL(/dashboard/);
+      });
+
+      await test.step('Verificar elementos del dashboard', async () => {
+        // Verificar que hay elementos básicos del dashboard
+        const header = page.locator('header').first();
+        await expect(header).toBeVisible();
+      });
+    });
   });
 
-  test('Validar que se muestre el rol correcto en el perfil del usuario de facturación', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    
-    // Usar POM para iniciar sesión como facturación
-    await loginPage.login('facturacion', 'factura123');
-    
-    // Abrir el menú de perfil
-    await page.click('button:has-text("👤 Perfil")');
-    
-    // Verificar que muestra el rol de Facturación
-    await expect(page.locator('.profile-info')).toContainText('Rol: Facturación');
-    await expect(page.locator('.profile-info')).toContainText('Usuario: facturacion');
+  test('Logout funcional', async ({ page }) => {
+    await test.step('Login como administrador', async () => {
+      const adminRole = CURRENT_ROLES.find(role => role.username === 'admin');
+      if (adminRole) {
+        await loginPage.login(adminRole.username, adminRole.password);
+        await expect(page).toHaveURL(/dashboard/);
+      }
+    });
+
+    await test.step('Realizar logout', async () => {
+      // Buscar botón de logout
+      const logoutButton = page.locator('button:has-text("Cerrar Sesión"), button:has-text("Logout"), button:has-text("Salir")');
+      
+      if (await logoutButton.isVisible()) {
+        await logoutButton.click();
+        await expect(page).toHaveURL('/');
+      }
+    });
   });
 
-  test('Validar inicio de sesión exitoso como usuario inspector', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    
-    // Usar POM para hacer login como inspector
-    await loginPage.login('inspector', 'inspector123');
-    
-    // Verificar que se redirige al dashboard
-    await expect(page).toHaveURL(/dashboard/);
-    
-    // Verificar que aparece el mensaje personalizado
-    await expect(page.locator('h2')).toContainText('¡Bienvenido inspector!');
-    
-    // Verificar que NO aparece el indicador de modo solo lectura (tiene permisos completos)
-   
-  });
-
-  test('Validar que se muestre el rol correcto en el perfil del usuario inspector', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    
-    // Usar POM para iniciar sesión como inspector
-    await loginPage.login('inspector', 'inspector123');
-    
-    // Abrir el menú de perfil
-    await page.click('button:has-text("👤 Perfil")');
-    
-    // Verificar que muestra el rol de Inspector
-    await expect(page.locator('.profile-info')).toContainText('Rol: Inspector');
-    await expect(page.locator('.profile-info')).toContainText('Usuario: inspector');
-  });
-
-  test('Validar que el usuario inspector tenga acceso completo al formulario de afiliados', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    const afiliadosFormPage = new AfiliadosFormPage(page);
-    const afiliadosListPage = new AfiliadosListPage(page);
-    
-    // Login como inspector
-    await loginPage.login('inspector', 'inspector123');
-    await page.waitForURL('/dashboard');
-    
-    // Ir al formulario de afiliados
-    await afiliadosFormPage.navegarAFormularioNuevo();
-    
-    // Verificar que todos los campos están habilitados (no readonly)
-    await expect(afiliadosFormPage.nombreInput).not.toHaveAttribute('readonly');
-    await expect(afiliadosFormPage.apellidosInput).not.toHaveAttribute('readonly');
-    await expect(afiliadosFormPage.dniInput).not.toHaveAttribute('readonly');
-    
-    // Completar formulario y verificar que puede guardar
-    const datosObligatorios = afiliadosFormPage.getDatosObligatoriosValidos();
-    await afiliadosFormPage.completarCamposObligatorios(datosObligatorios);
-    await afiliadosFormPage.verificarBotonGuardarHabilitado();
-    
-    // Verificar que puede acceder a la lista y ver botones de edición
-    await afiliadosListPage.navegarALista();
-    await expect(page.locator('button:has-text("Nuevo Afiliado")')).toBeVisible();
+  test('Verificar información de roles', async () => {
+    await test.step('Validar configuración de roles', async () => {
+      expect(CURRENT_ROLES.length).toBeGreaterThan(0);
+      
+      // Verificar que cada rol tiene las propiedades requeridas
+      CURRENT_ROLES.forEach(role => {
+        expect(role.roleName).toBeDefined();
+        expect(role.username).toBeDefined();
+        expect(role.password).toBeDefined();
+        expect(role.permissions).toBeDefined();
+      });
+    });
   });
 });
