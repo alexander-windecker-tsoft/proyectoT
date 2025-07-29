@@ -1,0 +1,114 @@
+{
+  "currentRoles": [
+    {
+      "username": "admin",
+      "password": "admin123",
+      "roleName": "Administrador",
+      "description": "Acceso completo al sistema",
+      "permissions": {
+        "canCreate": true,
+        "canEdit": true,
+        "canDelete": true,
+        "canView": true
+      },
+      "expectedBehavior": {
+        "formFieldsReadonly": false,
+        "hasCreateButton": true,
+        "hasEditButtons": true,
+        "hasDeleteButtons": true
+      }
+    },
+    {
+      "username": "inspector",
+      "password": "inspector123",
+      "roleName": "Inspector",
+      "description": "Acceso completo para inspección y gestión",
+      "permissions": {
+        "canCreate": true,
+        "canEdit": true,
+        "canDelete": true,
+        "canView": true
+      },
+      "expectedBehavior": {
+        "formFieldsReadonly": false,
+        "hasCreateButton": true,
+        "hasEditButtons": true,
+        "hasDeleteButtons": true
+      }
+    },
+    {
+      "username": "facturacion",
+      "password": "factura123",
+      "roleName": "Facturación",
+      "description": "Solo lectura para consultas de facturación",
+      "permissions": {
+        "canCreate": false,
+        "canEdit": false,
+        "canDelete": false,
+        "canView": true
+      },
+      "expectedBehavior": {
+        "formFieldsReadonly": true,
+        "hasCreateButton": false,
+        "hasEditButtons": false,
+        "hasDeleteButtons": false
+      }
+    }
+  ],
+  "futureRoles": [
+    {
+      "username": "supervisor",
+      "password": "super123",
+      "roleName": "Supervisor",
+      "description": "Supervisión con permisos limitados de eliminación",
+      "permissions": {
+        "canCreate": true,
+        "canEdit": true,
+        "canDelete": false,
+        "canView": true
+      },
+      "expectedBehavior": {
+        "formFieldsReadonly": false,
+        "hasCreateButton": true,
+        "hasEditButtons": true,
+        "hasDeleteButtons": false
+      }
+    },
+    {
+      "username": "recepcion",
+      "password": "recep123",
+      "roleName": "Recepción",
+      "description": "Solo creación y visualización de afiliados",
+      "permissions": {
+        "canCreate": true,
+        "canEdit": false,
+        "canDelete": false,
+        "canView": true
+      },
+      "expectedBehavior": {
+        "formFieldsReadonly": false,
+        "hasCreateButton": true,
+        "hasEditButtons": false,
+        "hasDeleteButtons": false
+      }
+    },
+    {
+      "username": "entrenador",
+      "password": "coach123",
+      "roleName": "Entrenador",
+      "description": "Solo visualización de afiliados asignados",
+      "permissions": {
+        "canCreate": false,
+        "canEdit": false,
+        "canDelete": false,
+        "canView": true
+      },
+      "expectedBehavior": {
+        "formFieldsReadonly": true,
+        "hasCreateButton": false,
+        "hasEditButtons": false,
+        "hasDeleteButtons": false
+      }
+    }
+  ]
+}

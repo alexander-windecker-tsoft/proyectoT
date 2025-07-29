@@ -1,0 +1,107 @@
+{
+  "environments": {
+    "dev": {
+      "name": "Development",
+      "baseURL": "http://localhost:3001",
+      "timeout": 30000,
+      "retries": 1,
+      "workers": 4,
+      "headless": false,
+      "slowMo": 100,
+      "video": "retain-on-failure",
+      "screenshot": "only-on-failure",
+      "trace": "on-first-retry"
+    },
+    "staging": {
+      "name": "Staging",
+      "baseURL": "https://staging-natacion.app.com",
+      "timeout": 45000,
+      "retries": 2,
+      "workers": 2,
+      "headless": true,
+      "slowMo": 50,
+      "video": "retain-on-failure",
+      "screenshot": "only-on-failure",
+      "trace": "on-first-retry"
+    },
+    "prod": {
+      "name": "Production",
+      "baseURL": "https://natacion.app.com",
+      "timeout": 60000,
+      "retries": 3,
+      "workers": 1,
+      "headless": true,
+      "slowMo": 0,
+      "video": "off",
+      "screenshot": "only-on-failure",
+      "trace": "retain-on-failure"
+    },
+    "local": {
+      "name": "Local Testing",
+      "baseURL": "http://127.0.0.1:3001",
+      "timeout": 20000,
+      "retries": 0,
+      "workers": 6,
+      "headless": false,
+      "slowMo": 200,
+      "video": "on",
+      "screenshot": "on",
+      "trace": "on"
+    }
+  },
+  "defaultEnvironment": "dev",
+  "browsers": {
+    "chromium": {
+      "enabled": true,
+      "args": ["--disable-web-security", "--allow-running-insecure-content"]
+    },
+    "firefox": {
+      "enabled": false,
+      "args": []
+    },
+    "webkit": {
+      "enabled": false,
+      "args": []
+    }
+  },
+  "testSettings": {
+    "waitForLoadState": "networkidle",
+    "defaultTimeout": 5000,
+    "actionTimeout": 30000,
+    "navigationTimeout": 30000,
+    "expectTimeout": 10000
+  },
+  "reporting": {
+    "html": {
+      "enabled": true,
+      "open": "never",
+      "outputFolder": "test-results/html-report"
+    },
+    "junit": {
+      "enabled": false,
+      "outputFile": "test-results/junit.xml"
+    },
+    "json": {
+      "enabled": true,
+      "outputFile": "test-results/results.json"
+    },
+    "allure": {
+      "enabled": false,
+      "outputFolder": "test-results/allure-results"
+    }
+  },
+  "database": {
+    "dev": {
+      "resetBetweenTests": true,
+      "seedData": true
+    },
+    "staging": {
+      "resetBetweenTests": false,
+      "seedData": false
+    },
+    "prod": {
+      "resetBetweenTests": false,
+      "seedData": false
+    }
+  }
+}

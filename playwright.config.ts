@@ -1,4 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
+import { getEnvironmentConfig, getFullConfig, logEnvironmentInfo } from './tests/config/environment-config';
+
+// Obtener configuración del ambiente actual
+const envConfig = getEnvironmentConfig();
+const fullConfig = getFullConfig();
+
+// Log información del ambiente
+logEnvironmentInfo();
 
 /**
  * @see https://playwright.dev/docs/test-configuration
@@ -8,27 +16,52 @@ export default defineConfig({
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
-  //forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  //retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  //workers: process.env.CI ? 1 : undefined,
+  forbidOnly: !!process.env.CI,
+  /* Retry based on environment */
+  retries: envConfig.retries,
+  /* Workers based on environment */
+  workers: envConfig.workers,
+  /* Timeout based on environment */
+  timeout: envConfig.timeout,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  reporter: [
+    ['html', { 
+      open: fullConfig.reporting.html?.open || 'never',
+      outputFolder: 'playwright-report'
+    }],
+    ['json', { outputFile: fullConfig.reporting.json?.outputFile || 'test-results/results.json' }]
+  ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:5173',
+    /* Base URL from environment configuration */
+    baseURL: envConfig.baseURL,
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    /* Timeouts from environment configuration */
+    actionTimeout: fullConfig.testSettings.actionTimeout,
+    navigationTimeout: fullConfig.testSettings.navigationTimeout,
+
+    /* Collect trace based on environment */
+    trace: envConfig.trace as any,
+    
+    /* Video recording based on environment */
+    video: envConfig.video as any,
+    
+    /* Screenshot on failure based on environment */
+    screenshot: envConfig.screenshot as any,
   },
 
   /* Configure projects for major browsers */
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        headless: envConfig.headless,
+        launchOptions: {
+          slowMo: envConfig.slowMo,
+          args: fullConfig.browsers.chromium?.args || []
+        }
+      },
     },
 
     // {
@@ -65,7 +98,7 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:5173',
+    url: envConfig.baseURL,
     reuseExistingServer: true,
   },
 });

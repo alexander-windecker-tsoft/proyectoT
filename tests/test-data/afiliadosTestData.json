@@ -1,0 +1,132 @@
+{
+  "validUser": {
+    "username": "admin",
+    "password": "admin123"
+  },
+  "afiliadoCompleto": {
+    "obligatorios": {
+      "nombre": "Carlos Eduardo",
+      "apellidos": "Martínez Silva",
+      "dni": "11223344",
+      "calle": "Av. Libertador",
+      "numero": "1500",
+      "pais": "argentina",
+      "provincia": "Buenos Aires",
+      "localidad": "San Isidro",
+      "codigoPostal": "1642",
+      "sexo": "masculino",
+      "clasesPorSemana": "4",
+      "tipoClase": "profesor"
+    },
+    "opcionales": {
+      "telefono": "+54 11 4567-8901",
+      "email": "carlos.martinez@email.com",
+      "fechaNacimiento": "1985-03-20",
+      "experienciaNatacion": "avanzado",
+      "observaciones": "Nadador experimentado, participó en competencias locales."
+    }
+  },
+  "afiliadoMinimo": {
+    "nombre": "Ana",
+    "apellidos": "López",
+    "dni": "55667788",
+    "calle": "Rivadavia",
+    "numero": "2500",
+    "pais": "argentina",
+    "provincia": "CABA",
+    "localidad": "Balvanera",
+    "codigoPostal": "1200",
+    "sexo": "femenino",
+    "clasesPorSemana": "2",
+    "tipoClase": "profesor"
+  },
+  "afiliadoParaEdicion": {
+    "nombre": "Roberto",
+    "apellidos": "González",
+    "dni": "99887766",
+    "calle": "Belgrano",
+    "numero": "800",
+    "pais": "argentina",
+    "provincia": "Mendoza",
+    "localidad": "Mendoza Capital",
+    "codigoPostal": "5500",
+    "sexo": "masculino",
+    "clasesPorSemana": "3",
+    "tipoClase": "profesor"
+  },
+  "datosInvalidos": {
+    "emailInvalido": "email-sin-formato-correcto",
+    "dniCorto": "123",
+    "nombreVacio": "",
+    "numeroNegativo": "-1"
+  },
+  "busquedas": {
+    "porNombre": "Juan",
+    "porApellido": "García",
+    "porDni": "12345",
+    "sinResultados": "XYZ123NoExiste"
+  },
+  "templates": {
+    "afiliadoBasico": {
+      "nombre": "{TIMESTAMP}",
+      "apellidos": "Test Apellido",
+      "dni": "{TIMESTAMP_8}",
+      "calle": "Calle Test",
+      "numero": "123",
+      "pais": "argentina",
+      "provincia": "Test Provincia",
+      "localidad": "Test Ciudad",
+      "codigoPostal": "1000",
+      "sexo": "masculino",
+      "clasesPorSemana": "3",
+      "tipoClase": "libre"
+    },
+    "afiliadoCompleto": {
+      "nombre": "TestCompleto{TIMESTAMP}",
+      "apellidos": "Apellido Completo",
+      "dni": "{TIMESTAMP_8}",
+      "calle": "Av. Test",
+      "numero": "456",
+      "pais": "argentina",
+      "provincia": "Buenos Aires",
+      "localidad": "Test City",
+      "codigoPostal": "1001",
+      "sexo": "femenino",
+      "clasesPorSemana": "4",
+      "tipoClase": "profesor",
+      "telefono": "+54 11 1234-5678",
+      "email": "test{TIMESTAMP}@email.com",
+      "fechaNacimiento": "1990-01-01",
+      "experienciaNatacion": "intermedio",
+      "observaciones": "Afiliado de prueba creado automáticamente"
+    }
+  },
+  "selectors": {
+    "paises": {
+      "argentina": "argentina",
+      "chile": "chile",
+      "uruguay": "uruguay"
+    },
+    "sexos": {
+      "masculino": "masculino",
+      "femenino": "femenino"
+    },
+    "clasesPorSemana": {
+      "1": "1",
+      "2": "2",
+      "3": "3",
+      "4": "4",
+      "5": "5"
+    },
+    "tiposClase": {
+      "libre": "libre",
+      "profesor": "profesor",
+      "grupal": "grupal"
+    },
+    "experienciaNatacion": {
+      "principiante": "principiante",
+      "intermedio": "intermedio",
+      "avanzado": "avanzado"
+    }
+  }
+}

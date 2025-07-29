@@ -1,102 +1,91 @@
-// Datos de prueba para los tests de afiliados
-export const TestData = {
-  // Usuarios de prueba
-  validUser: {
-    username: 'admin',
-    password: 'admin123'
-  },
+// Datos de prueba para los tests de afiliados desde JSON
+import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
 
-  // Datos de afiliados para pruebas
-  afiliadoCompleto: {
-    obligatorios: {
-      nombre: 'Carlos Eduardo',
-      apellidos: 'Martínez Silva',
-      dni: '11223344',
-      calle: 'Av. Libertador',
-      numero: '1500',
-      pais: 'argentina',
-      provincia: 'Buenos Aires',
-      localidad: 'San Isidro',
-      codigoPostal: '1642',
-      sexo: 'masculino',
-      clasesPorSemana: '4',
-      tipoClase: 'profesor'
-    },
-    opcionales: {
-      telefono: '+54 11 4567-8901',
-      email: 'carlos.martinez@email.com',
-      fechaNacimiento: '1985-03-20',
-      experienciaNatacion: 'avanzado',
-      observaciones: 'Nadador experimentado, participó en competencias locales.'
-    }
-  },
+// Fix para __dirname en ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-  afiliadoMinimo: {
-    nombre: 'Ana',
-    apellidos: 'López',
-    dni: '55667788',
-    calle: 'Rivadavia',
-    numero: '2500',
-    pais: 'argentina',
-    provincia: 'CABA',
-    localidad: 'Balvanera',
-    codigoPostal: '1200',
-    sexo: 'femenino',
-    clasesPorSemana: '2',
-    tipoClase: 'profesor'
-  },
-
-  afiliadoParaEdicion: {
-    nombre: 'Roberto',
-    apellidos: 'González',
-    dni: '99887766',
-    calle: 'Belgrano',
-    numero: '800',
-    pais: 'argentina',
-    provincia: 'Mendoza',
-    localidad: 'Mendoza Capital',
-    codigoPostal: '5500',
-    sexo: 'masculino',
-    clasesPorSemana: '3',
-    tipoClase: 'profesor'
-  },
-
-  // Datos inválidos para pruebas negativas
-  datosInvalidos: {
-    emailInvalido: 'email-sin-formato-correcto',
-    dniCorto: '123',
-    nombreVacio: '',
-    numeroNegativo: '-1'
-  },
-
-  // Términos de búsqueda
-  busquedas: {
-    porNombre: 'Juan',
-    porApellido: 'García',
-    porDni: '12345',
-    sinResultados: 'XYZ123NoExiste'
+// Cargar datos desde JSON
+function loadTestDataFromJSON() {
+  try {
+    const dataPath = path.join(__dirname, 'afiliadosTestData.json');
+    const testData = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+    return testData;
+  } catch (error) {
+    // Fallback a datos básicos
+    return {
+      validUser: {
+        username: 'admin',
+        password: 'admin123'
+      },
+      afiliadoMinimo: {
+        nombre: 'Ana',
+        apellidos: 'López',
+        dni: '55667788',
+        calle: 'Rivadavia',
+        numero: '2500',
+        pais: 'argentina',
+        provincia: 'CABA',
+        localidad: 'Balvanera',
+        codigoPostal: '1200',
+        sexo: 'femenino',
+        clasesPorSemana: '2',
+        tipoClase: 'profesor'
+      }
+    };
   }
-};
+}
+
+const jsonData = loadTestDataFromJSON();
+
+// Exportar datos cargados desde JSON
+export const TestData = jsonData;
 
 // Helper functions para los tests
 export const TestHelpers = {
-  // Generar datos únicos para evitar conflictos
-  generateUniqueAfiliado: () => {
+  // Generar datos únicos desde templates JSON
+  generateUniqueAfiliado: (template: 'basico' | 'completo' = 'basico') => {
     const timestamp = Date.now();
-    return {
-      nombre: `Test${timestamp}`,
-      apellidos: `Apellido${timestamp}`,
-      dni: `${timestamp}`.slice(-8),
-      calle: 'Calle Test',
-      numero: '123',
-      pais: 'argentina',
-      provincia: 'Test',
-      localidad: 'Test City',
-      codigoPostal: '1234',
-      sexo: 'masculino',
-      clasesPorSemana: '2',
-      tipoClase: 'profesor'
-    };
+    const templateKey = template === 'basico' ? 'afiliadoBasico' : 'afiliadoCompleto';
+    const templateData = jsonData.templates[templateKey];
+    
+    // Reemplazar placeholders en el template
+    const processedData: any = {};
+    
+    Object.keys(templateData).forEach(key => {
+      let value = templateData[key];
+      if (typeof value === 'string') {
+        value = value.replace('{TIMESTAMP}', timestamp.toString());
+        value = value.replace('{TIMESTAMP_8}', timestamp.toString().slice(-8));
+      }
+      processedData[key] = value;
+    });
+    
+    return processedData;
+  },
+
+  // Generar datos desde template personalizado
+  generateFromTemplate: (customTemplate: any) => {
+    const timestamp = Date.now();
+    const processedData: any = {};
+    
+    Object.keys(customTemplate).forEach(key => {
+      let value = customTemplate[key];
+      if (typeof value === 'string') {
+        value = value.replace('{TIMESTAMP}', timestamp.toString());
+        value = value.replace('{TIMESTAMP_8}', timestamp.toString().slice(-8));
+      }
+      processedData[key] = value;
+    });
+    
+    return processedData;
+  },
+
+  // Obtener opciones válidas para selects
+  getValidOptions: (field: string) => {
+    return jsonData.selectors[field] || {};
   },
 
   // Limpiar localStorage antes de tests
@@ -119,5 +108,10 @@ export const TestHelpers = {
       const data = localStorage.getItem('afiliados');
       return data ? JSON.parse(data) : [];
     });
+  },
+
+  // Crear afiliado con datos específicos del JSON
+  createAfiliadoFromData: (dataKey: string) => {
+    return jsonData[dataKey] || null;
   }
 };
