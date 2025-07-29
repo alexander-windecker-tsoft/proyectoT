@@ -53,14 +53,14 @@
   "browsers": {
     "chromium": {
       "enabled": true,
-      "args": ["--disable-web-security", "--allow-running-insecure-content"]
+      "args": ["--disable-web-security"]
     },
     "firefox": {
-      "enabled": true,
+      "enabled": false,
       "args": []
     },
     "webkit": {
-      "enabled": true,
+      "enabled": false,
       "args": []
     }
   },

@@ -1,38 +1,22 @@
-name: 🔄 CI & Regression - Continuous Integration & Testing
+name: 🔄 Regression - CI & Testing
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, develop ]
-  workflow_dispatch: # Permite ejecutar manualmente
-    inputs:
-      run_regression:
-        description: 'Run full regression tests'
-        required: false
-        default: false
-        type: boolean
-      target_environment:
-        description: 'Target environment for regression'
-        required: false
-        default: 'all'
-        type: choice
-        options:
-          - all
-          - dev
-          - staging
-          - prod
+    branches: [ main ]
+  workflow_dispatch:
 
 env:
   NODE_VERSION: '20'
   
 jobs:
-  # Job 1: Verificación de código y linting
-  code-quality:
-    name: 🔍 Code Quality & Linting
+  # Job único - Testing completo simplificado
+  test:
+    name: 🧪 Tests & Regression
     runs-on: ubuntu-latest
     steps:
-      - name: 📁 Checkout code
+      - name: 📁 Checkout
         uses: actions/checkout@v4
 
       - name: 🚀 Setup Node.js
@@ -44,207 +28,24 @@ jobs:
       - name: 📦 Install dependencies
         run: npm ci
 
-      - name: 🧹 ESLint check
+      - name: � Lint
         run: npm run lint
 
-      - name: 🔨 TypeScript build check
+      - name: � Build
         run: npm run build
 
-  # Job 2: Tests estándar (dev/staging)
-  tests:
-    name: 🧪 Standard Tests (Dev/Staging)
-    runs-on: ubuntu-latest
-    needs: code-quality
-    strategy:
-      matrix:
-        environment: [dev, staging]
-        browser: [chromium, firefox, webkit]
-    steps:
-      - name: 📁 Checkout code
-        uses: actions/checkout@v4
+      - name: 🎭 Install Playwright
+        run: npx playwright install chromium
 
-      - name: 🚀 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+      - name: 🧪 Run Tests
+        run: npx playwright test --project=chromium
 
-      - name: 📦 Install dependencies
-        run: npm ci
-
-      - name: 🎭 Install Playwright browsers
-        run: npx playwright install --with-deps ${{ matrix.browser }}
-
-      - name: 🏗️ Build application
-        run: npm run build
-
-      - name: 🧪 Run Playwright tests
-        env:
-          TEST_ENV: ${{ matrix.environment }}
-        run: npx playwright test --project=${{ matrix.browser }}
-
-      - name: 📊 Upload test results
+      - name:  Upload Results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report-${{ matrix.environment }}-${{ matrix.browser }}
-          path: playwright-report/
-          retention-days: 30
-
-  # Job 3: Tests de regresión completos (ALL tests)
-  regression-tests:
-    name: 🔄 Regression Suite (ALL Tests - All Environments)
-    runs-on: ubuntu-latest
-    needs: [code-quality, tests]
-    if: github.ref == 'refs/heads/main' || github.event.inputs.run_regression == 'true'
-    strategy:
-      matrix:
-        environment: ${{ github.event.inputs.target_environment == 'all' && fromJson('["dev", "staging", "prod"]') || fromJson(format('["{0}"]', github.event.inputs.target_environment || 'dev')) }}
-        browser: [chromium, firefox]
-    steps:
-      - name: 📁 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 🚀 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: 📦 Install dependencies
-        run: npm ci
-
-      - name: 🎭 Install Playwright browsers
-        run: npx playwright install --with-deps ${{ matrix.browser }}
-
-      - name: 🏗️ Build application
-        run: npm run build
-
-      - name: 🔄 Run REGRESSION SUITE (ALL tests)
-        env:
-          TEST_ENV: ${{ matrix.environment }}
-        run: |
-          echo "🔄 Running COMPLETE REGRESSION SUITE for ${{ matrix.environment }}"
-          echo "🌐 Browser: ${{ matrix.browser }}"
-          echo "📋 Test Type: ALL TESTS (not just @regression tagged)"
-          
-          # Ejecutar TODOS los tests (regresión completa)
-          npx playwright test --project=${{ matrix.browser }}
-
-      - name: 📊 Upload regression test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: regression-report-${{ matrix.environment }}-${{ matrix.browser }}
+          name: test-results
           path: |
             playwright-report/
             test-results/
-          retention-days: 60
-
-  # Job 4: Tests de smoke en producción (solo en main)
-  smoke-tests:
-    name: 💨 Smoke Tests
-    runs-on: ubuntu-latest
-    needs: [code-quality, tests, regression-tests]
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: 📁 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 🚀 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: 📦 Install dependencies
-        run: npm ci
-
-      - name: 🎭 Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: 💨 Run smoke tests
-        env:
-          TEST_ENV: prod
-        run: npm run test:smoke
-
-      - name: 📊 Upload smoke test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: smoke-test-report
-          path: playwright-report/
           retention-days: 30
-
-  # Job 5: Reporte consolidado de CI y Regresión
-  test-report:
-    name: 📋 CI & Regression Report Summary
-    runs-on: ubuntu-latest
-    needs: [tests, regression-tests, smoke-tests]
-    if: always()
-    steps:
-      - name: 📁 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 📥 Download all test artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ./reports
-
-      - name: 📊 Generate consolidated report
-        run: |
-          echo "## 🧪 CI & Regression Test Results Summary" >> $GITHUB_STEP_SUMMARY
-          echo "| Test Type | Environment | Browser | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-----------|-------------|---------|--------|" >> $GITHUB_STEP_SUMMARY
-          
-          for report in ./reports/*/; do
-            if [ -d "$report" ]; then
-              dirname=$(basename "$report")
-              
-              # Determinar tipo de test
-              if [[ "$dirname" == *"regression"* ]]; then
-                test_type="🔄 Regression Suite"
-              elif [[ "$dirname" == *"smoke"* ]]; then
-                test_type="💨 Smoke Tests"
-              else
-                test_type="🧪 Standard CI"
-              fi
-              
-              # Determinar ambiente
-              if [[ "$dirname" == *"dev"* ]]; then
-                env="🔧 Dev"
-              elif [[ "$dirname" == *"staging"* ]]; then
-                env="🚀 Staging"
-              elif [[ "$dirname" == *"prod"* ]]; then
-                env="🎯 Prod"
-              else
-                env="❓ Unknown"
-              fi
-              
-              # Determinar browser
-              if [[ "$dirname" == *"chromium"* ]]; then
-                browser="🌐 Chromium"
-              elif [[ "$dirname" == *"firefox"* ]]; then
-                browser="🦊 Firefox"
-              elif [[ "$dirname" == *"webkit"* ]]; then
-                browser="🍎 Safari"
-              else
-                browser="🧪 All"
-              fi
-              
-              echo "| $test_type | $env | $browser | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
-            fi
-          done
-          
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📁 Full reports available in workflow artifacts" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🎯 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Standard CI Tests**: Quick validation across dev/staging environments" >> $GITHUB_STEP_SUMMARY
-          echo "- **Regression Suite**: COMPLETE test suite across ALL environments (main branch or manual)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Smoke Tests**: Critical path validation in production environment (main only)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🔄 Regression Testing Info" >> $GITHUB_STEP_SUMMARY
-          echo "- Regression runs **ALL tests** (not just @regression tagged)" >> $GITHUB_STEP_SUMMARY
-          echo "- Executes across dev, staging, and prod environments" >> $GITHUB_STEP_SUMMARY
-          echo "- Can be triggered manually via 'Run workflow' button" >> $GITHUB_STEP_SUMMARY

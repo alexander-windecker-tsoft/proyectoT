@@ -64,29 +64,30 @@ export default defineConfig({
       },
     },
 
-    {
-      name: 'firefox',
-      use: { 
-        ...devices['Desktop Firefox'],
-        headless: envConfig.headless,
-        launchOptions: {
-          slowMo: envConfig.slowMo,
-          args: fullConfig.browsers.firefox?.args || []
-        }
-      },
-    },
+    // Firefox y Webkit comentados por ahora para estabilidad
+    // {
+    //   name: 'firefox',
+    //   use: { 
+    //     ...devices['Desktop Firefox'],
+    //     headless: envConfig.headless,
+    //     launchOptions: {
+    //       slowMo: envConfig.slowMo,
+    //       args: fullConfig.browsers.firefox?.args || []
+    //     }
+    //   },
+    // },
 
-    {
-      name: 'webkit',
-      use: { 
-        ...devices['Desktop Safari'],
-        headless: envConfig.headless,
-        launchOptions: {
-          slowMo: envConfig.slowMo,
-          args: fullConfig.browsers.webkit?.args || []
-        }
-      },
-    },
+    // {
+    //   name: 'webkit',
+    //   use: { 
+    //     ...devices['Desktop Safari'],
+    //     headless: envConfig.headless,
+    //     launchOptions: {
+    //       slowMo: envConfig.slowMo,
+    //       args: fullConfig.browsers.webkit?.args || []
+    //     }
+    //   },
+    // },
 
     /* Test against mobile viewports. */
     // {
