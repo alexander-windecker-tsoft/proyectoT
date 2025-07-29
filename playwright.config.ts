@@ -64,15 +64,29 @@ export default defineConfig({
       },
     },
 
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
+    {
+      name: 'firefox',
+      use: { 
+        ...devices['Desktop Firefox'],
+        headless: envConfig.headless,
+        launchOptions: {
+          slowMo: envConfig.slowMo,
+          args: fullConfig.browsers.firefox?.args || []
+        }
+      },
+    },
 
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
+    {
+      name: 'webkit',
+      use: { 
+        ...devices['Desktop Safari'],
+        headless: envConfig.headless,
+        launchOptions: {
+          slowMo: envConfig.slowMo,
+          args: fullConfig.browsers.webkit?.args || []
+        }
+      },
+    },
 
     /* Test against mobile viewports. */
     // {

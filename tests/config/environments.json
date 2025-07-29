@@ -56,11 +56,11 @@
       "args": ["--disable-web-security", "--allow-running-insecure-content"]
     },
     "firefox": {
-      "enabled": false,
+      "enabled": true,
       "args": []
     },
     "webkit": {
-      "enabled": false,
+      "enabled": true,
       "args": []
     }
   },
