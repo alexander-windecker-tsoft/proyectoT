@@ -161,15 +161,23 @@ export default defineConfig({
     // },
   ],
 
-  /* Configuración del servidor para tests locales */
-  webServer: process.env.CI ? undefined : {
-    command: 'npm run dev',
+  /* Configuración del servidor para tests - FUNCIONA EN CI Y LOCAL */
+  webServer: {
+    command: process.env.CI ? 'npm run preview' : 'npm run dev',
     url: 'http://localhost:3000',
-    reuseExistingServer: true,
-    timeout: 120 * 1000,
+    reuseExistingServer: !process.env.CI, // En CI siempre inicia nuevo servidor
+    timeout: process.env.CI ? 180 * 1000 : 120 * 1000, // Más tiempo en CI
     // Esperar a que el servidor esté listo
     stdout: 'pipe',
     stderr: 'pipe',
+    // En CI, forzar el puerto
+    ...(process.env.CI && {
+      port: 3000,
+      env: {
+        PORT: '3000',
+        HOST: '0.0.0.0'
+      }
+    })
   },
 
   /* Carpeta para outputs */

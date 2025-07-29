@@ -114,6 +114,8 @@ jobs:
         env:
           TEST_ENV: ${{ matrix.environment }}
           CI: true
+          PORT: 3000
+          HOST: 0.0.0.0
         run: |
           echo "🔄 COMPLETE REGRESSION TESTING"
           echo "🌐 Environment: ${{ matrix.environment }}"
@@ -126,7 +128,15 @@ jobs:
           mkdir -p test-results
           mkdir -p playwright-report
           
-          # Ejecutar tests según el ambiente
+          # Verificar que el build existe antes de ejecutar tests
+          if [ ! -d "dist" ]; then
+            echo "❌ Error: dist folder not found! Build may have failed."
+            exit 1
+          fi
+          
+          echo "✅ Build artifacts found, proceeding with tests..."
+          
+          # Ejecutar tests según el ambiente con servidor automático
           npm run test:regression:${{ matrix.environment }} -- --project=${{ matrix.browser }}
           
           # Verificar si se generó el reporte JSON

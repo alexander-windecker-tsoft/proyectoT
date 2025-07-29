@@ -37,8 +37,32 @@ jobs:
       - name: 🧹 Lint
         run: npm run lint
 
-      - name: ️ Build
+      - name: 🏗️ Build
         run: npm run build
+
+      - name: 🎭 Install Playwright browsers
+        run: |
+          npx playwright install chromium --with-deps
+          npx playwright install-deps
+
+      - name: 🧪 Run smoke tests
+        env:
+          CI: true
+          PORT: 3000
+          HOST: 0.0.0.0
+        run: |
+          echo "🧪 Running smoke tests before deployment..."
+          
+          # Verificar que el build existe
+          if [ ! -d "dist" ]; then
+            echo "❌ Error: dist folder not found! Build failed."
+            exit 1
+          fi
+          
+          echo "✅ Build artifacts found, running smoke tests..."
+          npm run test:smoke
+          
+          echo "✅ Smoke tests passed!"
 
       - name: 📦 Create deployment package
         run: tar -czf deployment-package.tar.gz dist/ package.json
