@@ -26,7 +26,7 @@ export default defineConfig({
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['html', { 
-      open: fullConfig.reporting.html?.open || 'never',
+      open: (fullConfig.reporting.html && 'open' in fullConfig.reporting.html ? fullConfig.reporting.html.open : 'never'),
       outputFolder: 'playwright-report'
     }],
     ['json', { outputFile: fullConfig.reporting.json?.outputFile || 'test-results/results.json' }]
@@ -113,7 +113,8 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: {
     command: 'npm run dev',
-    url: envConfig.baseURL,
-    reuseExistingServer: true,
+    url: 'http://localhost:3000', // Puerto configurado en vite.config.ts
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
   },
 });
