@@ -112,8 +112,9 @@ jobs:
             echo "🔄 Running ALL sanity tests..."
             npm run test:sanity:${{ github.event.inputs.environment }} -- --project=${{ github.event.inputs.browser }}
           else
-            echo "🎯 Running specific test file..."
-            TEST_ENV=${{ github.event.inputs.environment }} npx playwright test "${{ github.event.inputs.test_run }}" --project=${{ github.event.inputs.browser }}
+            echo "🎯 Running specific test file with @sanity filter..."
+            echo "📋 Filtering for @sanity tests only in: ${{ github.event.inputs.test_run }}"
+            TEST_ENV=${{ github.event.inputs.environment }} npx playwright test "${{ github.event.inputs.test_run }}" --grep "@sanity" --project=${{ github.event.inputs.browser }}
           fi
 
       - name: 📸 Capture failure screenshots
