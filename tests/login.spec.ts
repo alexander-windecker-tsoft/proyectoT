@@ -9,7 +9,7 @@ test.describe('FEATURE - Autenticación y Login', () => {
     loginPage = new LoginPage(page);
   });
 
-  test('Verificar página de login carga correctamente', async ({ page }) => {
+  test('Verificar página de login carga correctamente @sanity', async ({ page }) => {
     await test.step('Navegar a la página de login', async () => {
       await page.goto('/');
       await expect(page).toHaveURL('/');
@@ -54,8 +54,12 @@ test.describe('FEATURE - Autenticación y Login', () => {
   });
 
   // Tests de login para cada rol configurado
-  CURRENT_ROLES.forEach(role => {
-    test(`Login exitoso - Rol: ${role.roleName}`, async ({ page }) => {
+  CURRENT_ROLES.forEach((role, index) => {
+    const testName = index === 0 ? 
+      `Login exitoso - Rol: ${role.roleName} @sanity` : 
+      `Login exitoso - Rol: ${role.roleName}`;
+    
+    test(testName, async ({ page }) => {
       await test.step(`Login con credenciales de ${role.roleName}`, async () => {
         await loginPage.login(role.username, role.password);
       });
@@ -72,7 +76,7 @@ test.describe('FEATURE - Autenticación y Login', () => {
     });
   });
 
-  test('Logout funcional', async ({ page }) => {
+  test('Logout funcional @sanity', async ({ page }) => {
     await test.step('Login como administrador', async () => {
       const adminRole = CURRENT_ROLES.find(role => role.username === 'admin');
       if (adminRole) {

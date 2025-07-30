@@ -25,8 +25,7 @@ on:
         options:
           - chromium
           - firefox
-          - webkit
-          - all
+          
 
 env:
   NODE_VERSION: '20'

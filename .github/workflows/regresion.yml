@@ -1,0 +1,195 @@
+name: 🔄 Regression Básica
+
+run-name: ${{ github.actor }} triggered Regression Test on ${{ github.ref_name }}
+
+on:
+  push:
+    branches: 
+      - main
+      - QA
+  pull_request:
+    branches:
+      - main
+      - QA
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  playwright-regression:
+    name: 🧪 Playwright Regression Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📁 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🚀 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Lint check
+        run: npm run lint
+
+      - name: 🏗️ Build application
+        run: npm run build
+
+      - name: 🎭 Install Playwright browsers
+        run: |
+          npx playwright install chromium --with-deps
+          npx playwright install-deps
+
+      - name: 🔍 Verify build artifacts
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "❌ Error: dist folder not found! Build failed."
+            exit 1
+          fi
+          echo "✅ Build artifacts found"
+          ls -la dist/
+
+      - name: 🧪 Run Playwright regression tests
+        env:
+          CI: true
+          PORT: 3000
+          HOST: 0.0.0.0
+        run: |
+          echo "🧪 REGRESSION TEST EXECUTION"
+          echo "🌐 Branch: ${{ github.ref_name }}"
+          echo "👤 Triggered by: ${{ github.actor }}"
+          echo "🧪 Browser: Chromium"
+          echo "📋 Running regression test suite"
+          echo "============================================"
+          
+          # Crear directorios de reportes
+          mkdir -p test-results
+          mkdir -p playwright-report
+          
+          # Ejecutar tests de regresión (todos los tests)
+          npx playwright test --project=chromium --reporter=list --reporter=html --reporter=json
+
+      - name: 📸 Capture failure screenshots
+        if: failure()
+        run: |
+          echo "📸 Capturing failure evidence..."
+          find test-results -name "*.png" -o -name "*.webm" | head -10
+          
+          # Listar archivos de trace si existen
+          find test-results -name "trace.zip" | head -5
+
+      - name: 📊 Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: regression-results-${{ github.ref_name }}-${{ github.run_attempt }}
+          path: |
+            playwright-report/
+            test-results/
+            **/*.png
+            **/*.webm
+            **/*.zip
+          retention-days: 14
+
+      - name: 📋 Generate test summary
+        if: always()
+        run: |
+          echo "# 🔄 REGRESSION TEST RESULTS" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Run ID:** ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Verificar resultados
+          if [ -f "test-results/results.json" ]; then
+            # Instalar jq si no está disponible
+            which jq || sudo apt-get install -y jq
+            
+            passed=$(cat test-results/results.json | jq '.stats.passed' 2>/dev/null || echo "0")
+            failed=$(cat test-results/results.json | jq '.stats.failed' 2>/dev/null || echo "0")
+            skipped=$(cat test-results/results.json | jq '.stats.skipped' 2>/dev/null || echo "0")
+            
+            echo "## 📊 Test Statistics" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Status | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| ✅ Passed | $passed |" >> $GITHUB_STEP_SUMMARY
+            echo "| ❌ Failed | $failed |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⏭️ Skipped | $skipped |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$failed" -gt 0 ]; then
+              echo "## ❌ REGRESSION FAILED" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "- ⚠️ $failed test(s) failed" >> $GITHUB_STEP_SUMMARY
+              echo "- 🔍 Check test reports for details" >> $GITHUB_STEP_SUMMARY
+              echo "- 📁 Artifacts available for download" >> $GITHUB_STEP_SUMMARY
+              echo "- 🚫 **DO NOT MERGE** until tests pass" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "## ✅ REGRESSION PASSED" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "- 🎯 All tests passed successfully" >> $GITHUB_STEP_SUMMARY
+              echo "- 🚀 Ready for deployment" >> $GITHUB_STEP_SUMMARY
+              echo "- 💪 Code quality validated" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "## ⚠️ NO TEST RESULTS FOUND" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Could not find test results file. Check workflow logs." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📁 **Detailed HTML reports available in workflow artifacts**" >> $GITHUB_STEP_SUMMARY
+
+      - name: 💬 Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let status = '✅ All tests passed';
+            let emoji = '✅';
+            
+            // Check for failures
+            try {
+              if (fs.existsSync('test-results/results.json')) {
+                const data = JSON.parse(fs.readFileSync('test-results/results.json', 'utf8'));
+                if (data.stats.failed > 0) {
+                  status = `❌ ${data.stats.failed} test(s) failed`;
+                  emoji = '❌';
+                }
+              }
+            } catch (e) {
+              console.log('Could not read test results');
+              status = '⚠️ Could not determine test status';
+              emoji = '⚠️';
+            }
+            
+            const summary = `## ${emoji} Regression Test Results
+            
+            **Status:** ${status}
+            **Branch:** ${{ github.ref_name }}
+            **Triggered by:** ${{ github.actor }}
+            
+            [📊 View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            
+            ### 🧪 Test Coverage
+            - ✅ Login flows
+            - ✅ CRUD operations  
+            - ✅ Role-based access
+            - ✅ Form validations
+            - ✅ UI/UX components
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+    

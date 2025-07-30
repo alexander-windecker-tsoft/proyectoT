@@ -1,6 +1,6 @@
 # GitHub Actions Settings
 
-# Este archivo documenta las configuraciones recomendadas para el repositorio
+## Este archivo documenta las configuraciones recomendadas para el repositorio
 
 ## 🔧 Repository Settings
 
