@@ -60,7 +60,7 @@ jobs:
           fi
           
           echo "✅ Build artifacts found, running smoke tests..."
-          npm run test:smoke
+          npm run test:smoke:dev
           
           echo "✅ Smoke tests passed!"
 

@@ -22,8 +22,8 @@ test.describe('FEATURE - Control de Afiliados', () => {
         await page.waitForURL('/dashboard');
       });
 
-      // FUNCIONALIDAD: VISUALIZAR
-      test(`Visualizar - Permisos de acceso y visualización`, async ({ page }) => {
+      // FUNCIONALIDAD: VISUALIZAR  
+      test(`Visualizar - Permisos de acceso y visualización @smoke`, async ({ page }) => {
         await test.step('Verificar acceso a lista de afiliados', async () => {
           await afiliadosListPage.navegarALista();
           await expect(page).toHaveURL(/afiliados/);

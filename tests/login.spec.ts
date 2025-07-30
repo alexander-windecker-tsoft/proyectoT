@@ -9,7 +9,7 @@ test.describe('FEATURE - Autenticación y Login', () => {
     loginPage = new LoginPage(page);
   });
 
-  test('Verificar página de login carga correctamente @sanity', async ({ page }) => {
+  test('Verificar página de login carga correctamente @sanity @smoke', async ({ page }) => {
     await test.step('Navegar a la página de login', async () => {
       await page.goto('/');
       await expect(page).toHaveURL('/');
@@ -56,7 +56,7 @@ test.describe('FEATURE - Autenticación y Login', () => {
   // Tests de login para cada rol configurado
   CURRENT_ROLES.forEach((role, index) => {
     const testName = index === 0 ? 
-      `Login exitoso - Rol: ${role.roleName} @sanity` : 
+      `Login exitoso - Rol: ${role.roleName} @sanity @smoke` : 
       `Login exitoso - Rol: ${role.roleName}`;
     
     test(testName, async ({ page }) => {
