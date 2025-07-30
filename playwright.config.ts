@@ -61,8 +61,8 @@ export default defineConfig({
   
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL from environment configuration */
-    baseURL: envConfig.baseURL,
+    /* Base URL - CI override takes precedence */
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || envConfig.baseURL,
 
     /* Timeouts from environment configuration */
     actionTimeout: fullConfig.testSettings.actionTimeout,

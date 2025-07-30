@@ -33,7 +33,7 @@
     "test:regression": "playwright test --grep @regression",
     "test:regression:all": "playwright test",
     "test:regression:dev": "TEST_ENV=dev playwright test",
-    "test:regression:staging": "TEST_ENV=staging playwright test",
+    "test:regression:staging": "npx cross-env TEST_ENV=staging playwright test",
     "test:regression:prod": "TEST_ENV=prod playwright test --grep @smoke",
     "regression:complete": "npm run test:regression:dev && npm run test:regression:staging && npm run test:regression:prod",
     "ci:install": "npm ci",

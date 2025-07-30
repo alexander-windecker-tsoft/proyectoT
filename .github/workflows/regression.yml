@@ -2,7 +2,7 @@ name: 🔄 Regression - Complete Testing Suite
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, QA ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -115,6 +115,8 @@ jobs:
           CI: true
           PORT: 3000
           HOST: 0.0.0.0
+          # Forzar localhost para CI independientemente del ambiente
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
         run: |
           echo "🔄 COMPLETE REGRESSION TESTING"
           echo "🌐 Environment: ${{ matrix.environment }}"
@@ -134,6 +136,7 @@ jobs:
           fi
           
           echo "✅ Build artifacts found, proceeding with tests..."
+          echo "🔗 Using base URL: http://localhost:3000 (CI override)"
           
           # Ejecutar tests según el ambiente con servidor automático
           npm run test:regression:${{ matrix.environment }} -- --project=${{ matrix.browser }}
