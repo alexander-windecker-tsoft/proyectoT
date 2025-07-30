@@ -170,14 +170,11 @@ export default defineConfig({
     // Esperar a que el servidor esté listo
     stdout: 'pipe',
     stderr: 'pipe',
-    // En CI, forzar el puerto
-    ...(process.env.CI && {
-      port: 3000,
-      env: {
-        PORT: '3000',
-        HOST: '0.0.0.0'
-      }
-    })
+    // En CI, configurar variables de entorno para el comando
+    env: process.env.CI ? {
+      PORT: '3000',
+      HOST: '0.0.0.0'
+    } : {}
   },
 
   /* Carpeta para outputs */
