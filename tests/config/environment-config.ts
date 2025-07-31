@@ -1,9 +1,17 @@
 // Configuración de ambientes para Playwright
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 
-// Usar __dirname de CommonJS (funciona mejor con Playwright)
-const __dirname = path.dirname(__filename);
+// Solución compatible con ES modules y CommonJS
+let __dirname: string;
+try {
+  // Intenta usar import.meta.url (ES modules)
+  __dirname = path.dirname(fileURLToPath(import.meta.url));
+} catch {
+  // Fallback para CommonJS
+  __dirname = path.dirname(__filename);
+}
 
 export interface EnvironmentConfig {
   environment: string;

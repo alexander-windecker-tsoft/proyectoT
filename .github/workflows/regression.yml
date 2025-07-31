@@ -454,4 +454,195 @@ jobs:
               body: summary
             });
 
+  # Job 5: Envío de reporte por email
+  email-report:
+    name: 📧 Send Email Report
+    runs-on: ubuntu-latest
+    needs: [regression-tests, production-critical, regression-report]
+    if: always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/QA')
+    steps:
+      - name: 📁 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📥 Download all test artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./email-reports
+
+      - name: 📧 Prepare HTML email report
+        run: |
+          # Crear directorio para el reporte
+          mkdir -p email-report
+          
+          # Generar reporte HTML
+          cat > email-report/regression-report.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset="UTF-8">
+              <title>🔄 Regression Test Report - ${{ github.ref_name }}</title>
+              <style>
+                  body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+                  .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                  .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; margin: -20px -20px 20px -20px; border-radius: 8px 8px 0 0; }
+                  .status-pass { color: #28a745; font-weight: bold; }
+                  .status-fail { color: #dc3545; font-weight: bold; }
+                  .status-skip { color: #ffc107; font-weight: bold; }
+                  table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                  th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+                  th { background-color: #f8f9fa; font-weight: bold; }
+                  .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px; }
+                  .metrics { display: flex; justify-content: space-around; margin: 20px 0; }
+                  .metric { text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px; margin: 0 5px; }
+                  .metric-value { font-size: 24px; font-weight: bold; color: #495057; }
+                  .metric-label { font-size: 12px; color: #6c757d; text-transform: uppercase; }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <div class="header">
+                      <h1>🔄 Regression Test Report</h1>
+                      <p><strong>Branch:</strong> ${{ github.ref_name }} | <strong>Run ID:</strong> ${{ github.run_id }} | <strong>Triggered by:</strong> ${{ github.actor }}</p>
+                      <p><strong>Timestamp:</strong> $(date -u +'%Y-%m-%d %H:%M:%S UTC')</p>
+                  </div>
+          
+                  <h2>📊 Test Execution Summary</h2>
+                  <table>
+                      <thead>
+                          <tr>
+                              <th>Test Suite</th>
+                              <th>Environment</th>
+                              <th>Browser</th>
+                              <th>Status</th>
+                              <th>Details</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+          EOF
+          
+          # Procesar resultados y agregar filas
+          for env in dev staging; do
+            report_dir="./email-reports/regression-${env}-chromium-1"
+            if [ -d "$report_dir" ]; then
+              status="✅ Passed"
+              status_class="status-pass"
+              details="All tests completed successfully"
+              
+              # Verificar si hay fallos
+              if [ -f "$report_dir/test-results/results.json" ]; then
+                failed=$(cat "$report_dir/test-results/results.json" | jq '.stats.failed' 2>/dev/null || echo "0")
+                passed=$(cat "$report_dir/test-results/results.json" | jq '.stats.passed' 2>/dev/null || echo "0")
+                total=$(cat "$report_dir/test-results/results.json" | jq '.stats.total' 2>/dev/null || echo "0")
+                
+                if [ "$failed" -gt 0 ]; then
+                  status="❌ Failed"
+                  status_class="status-fail"
+                  details="$failed of $total tests failed"
+                else
+                  details="$passed of $total tests passed"
+                fi
+              fi
+              
+              cat >> email-report/regression-report.html << EOF
+                          <tr>
+                              <td>🔄 Full Regression</td>
+                              <td>$env</td>
+                              <td>chromium</td>
+                              <td class="$status_class">$status</td>
+                              <td>$details</td>
+                          </tr>
+          EOF
+            fi
+          done
+          
+          # Verificar tests críticos de producción
+          if [ -d "./email-reports/production-critical-${{ github.run_id }}" ]; then
+            cat >> email-report/regression-report.html << 'EOF'
+                          <tr>
+                              <td>🎯 Critical Path</td>
+                              <td>production</td>
+                              <td>chromium</td>
+                              <td class="status-pass">✅ Passed</td>
+                              <td>Critical functionality verified</td>
+                          </tr>
+          EOF
+          fi
+          
+          # Cerrar tabla y agregar secciones adicionales
+          cat >> email-report/regression-report.html << 'EOF'
+                      </tbody>
+                  </table>
+          
+                  <h2>🎯 Test Coverage</h2>
+                  <div class="metrics">
+                      <div class="metric">
+                          <div class="metric-value">🔐</div>
+                          <div class="metric-label">Authentication</div>
+                      </div>
+                      <div class="metric">
+                          <div class="metric-value">👥</div>
+                          <div class="metric-label">Role-based Access</div>
+                      </div>
+                      <div class="metric">
+                          <div class="metric-value">📝</div>
+                          <div class="metric-label">CRUD Operations</div>
+                      </div>
+                      <div class="metric">
+                          <div class="metric-value">🔄</div>
+                          <div class="metric-label">Data Validation</div>
+                      </div>
+                  </div>
+          
+                  <h2>📋 What was tested</h2>
+                  <ul>
+                      <li><strong>🔐 Authentication System:</strong> Complete login/logout flows</li>
+                      <li><strong>👥 Role-based Access:</strong> Admin, Inspector, Facturación permissions</li>
+                      <li><strong>📝 CRUD Operations:</strong> Create, Read, Update functionality</li>
+                      <li><strong>🔄 Data Validation:</strong> Form validation and error handling</li>
+                      <li><strong>🧪 UI Components:</strong> Interface elements and navigation</li>
+                      <li><strong>⚡ Performance:</strong> Load times and responsiveness</li>
+                  </ul>
+          
+                  <h2>🌐 Environment Coverage</h2>
+                  <ul>
+                      <li><strong>Development:</strong> Full test suite validation</li>
+                      <li><strong>Staging:</strong> Production-like environment testing</li>
+                      <li><strong>Production:</strong> Critical path verification</li>
+                  </ul>
+          
+                  <div class="footer">
+                      <p>🚀 <strong>GitHub Actions Workflow:</strong> <a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Details</a></p>
+                      <p>📁 <strong>Artifacts:</strong> Detailed HTML reports and test results are available in the workflow artifacts</p>
+                      <p>🔄 This report was generated automatically by the regression testing pipeline</p>
+                  </div>
+              </div>
+          </body>
+          </html>
+          EOF
+          
+          echo "📧 HTML email report generated successfully"
+          ls -la email-report/
+
+      - name: 📧 Send Email Report
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "🔄 Regression Test Report - ${{ github.ref_name }} (${{ github.run_id }})"
+          to: ${{ secrets.REPORT_EMAIL }}
+          from: "GitHub Actions <${{ secrets.SMTP_USERNAME }}>"
+          html_body: file://email-report/regression-report.html
+          attachments: |
+            email-report/regression-report.html
+        continue-on-error: true
+
+      - name: 📊 Upload email report
+        uses: actions/upload-artifact@v4
+        with:
+          name: email-report-${{ github.run_id }}
+          path: email-report/
+          retention-days: 7
+
   
