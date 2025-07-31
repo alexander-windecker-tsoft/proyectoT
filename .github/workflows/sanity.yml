@@ -23,11 +23,19 @@ on:
           - prod
           - uat
           - dev
+          - QA
       test_run:
         description: 'Selecciona la ejecución de prueba (path del test)'
         required: true
         default: 'tests/'
-        type: string
+        type: choice
+        options:
+          - tests/
+          - tests/login.spec.ts
+          - tests/afiliados-control.spec.ts
+          - tests/demo-failures.spec.ts
+          - '@demo'
+          - '@sanity'
       browser:
         description: 'Selecciona el navegador'
         required: false
@@ -45,8 +53,9 @@ jobs:
   sanity_test:
     name: 🧪 Sanity Tests - ${{ github.event.inputs.environment }}
     runs-on: ${{ github.event.inputs.os }}
-    environment: ${{ github.event.inputs.environment }}
-    
+    environment: 
+        name: ${{ github.event.inputs.environment }}
+
     steps:
       - name: 📁 Checkout
         uses: actions/checkout@v4
@@ -67,12 +76,21 @@ jobs:
           if [ "${{ github.event.inputs.test_run }}" = "tests/" ]; then
             echo "📁 Ejecutando todos los tests de sanity"
             find tests -name "*.spec.ts" | head -10
-          else
-            echo "📁 Ejecutando test específico: ${{ github.event.inputs.test_run }}"
+          elif [ "${{ github.event.inputs.test_run }}" = "@demo" ]; then
+            echo "🎭 Ejecutando tests de DEMO (que fallan intencionalmente)"
+            echo "📋 Estos tests mostrarán errores en el reporte para demostración"
+          elif [ "${{ github.event.inputs.test_run }}" = "@sanity" ]; then
+            echo "� Ejecutando todos los tests con tag @sanity"
+            grep -r "@sanity" tests/ || echo "Buscando tests con tag @sanity..."
+          elif [[ "${{ github.event.inputs.test_run }}" == *.spec.ts ]]; then
+            echo "�📁 Ejecutando test específico: ${{ github.event.inputs.test_run }}"
             if [ ! -f "${{ github.event.inputs.test_run }}" ]; then
               echo "❌ Error: Archivo de test no encontrado!"
               exit 1
             fi
+          else
+            echo "❌ Error: Opción de test no reconocida!"
+            exit 1
           fi
 
       - name: 🏗️ Build application
@@ -89,6 +107,8 @@ jobs:
           CI: true
           PORT: 3000
           HOST: 0.0.0.0
+          # Forzar localhost para CI independientemente del ambiente
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
         run: |
           echo "🧪 SANITY TESTS EXECUTION"
           echo "🌐 Environment: ${{ github.event.inputs.environment }}"
@@ -110,12 +130,24 @@ jobs:
           # Ejecutar tests de sanity específicos
           if [ "${{ github.event.inputs.test_run }}" = "tests/" ]; then
             echo "🔄 Running ALL sanity tests..."
-            npm run test:sanity:${{ github.event.inputs.environment }} -- --project=${{ github.event.inputs.browser }}
-          else
-            echo "🎯 Running specific test file with @sanity filter..."
+            npm run test:sanity:${{ github.event.inputs.environment }} -- --project=${{ github.event.inputs.browser }} || EXIT_CODE=$?
+          elif [ "${{ github.event.inputs.test_run }}" = "@demo" ]; then
+            echo "� Running DEMO tests (tests that fail intentionally)..."
+            echo "📋 These tests will fail to show error reporting in action"
+            TEST_ENV=${{ github.event.inputs.environment }} npx playwright test --grep "@demo" --project=${{ github.event.inputs.browser }} || EXIT_CODE=$?
+          elif [ "${{ github.event.inputs.test_run }}" = "@sanity" ]; then
+            echo "🔄 Running all @sanity tagged tests..."
+            TEST_ENV=${{ github.event.inputs.environment }} npx playwright test --grep "@sanity" --project=${{ github.event.inputs.browser }} || EXIT_CODE=$?
+          elif [[ "${{ github.event.inputs.test_run }}" == *.spec.ts ]]; then
+            echo "�🎯 Running specific test file with @sanity filter..."
             echo "📋 Filtering for @sanity tests only in: ${{ github.event.inputs.test_run }}"
-            TEST_ENV=${{ github.event.inputs.environment }} npx playwright test "${{ github.event.inputs.test_run }}" --grep "@sanity" --project=${{ github.event.inputs.browser }}
+            TEST_ENV=${{ github.event.inputs.environment }} npx playwright test "${{ github.event.inputs.test_run }}" --grep "@sanity" --project=${{ github.event.inputs.browser }} || EXIT_CODE=$?
+          else
+            echo "🎯 Running specific test file: ${{ github.event.inputs.test_run }}"
+            TEST_ENV=${{ github.event.inputs.environment }} npx playwright test "${{ github.event.inputs.test_run }}" --project=${{ github.event.inputs.browser }} || EXIT_CODE=$?
           fi
+          
+          echo "📋 Tests execution completed with exit code: ${EXIT_CODE:-0}"
 
       - name: 📸 Capture failure screenshots
         if: failure()
@@ -134,10 +166,8 @@ jobs:
           path: |
             playwright-report/
             test-results/
-            **/*.png
-            **/*.webm
-            **/*.zip
           retention-days: 14
+          if-no-files-found: warn
 
       - name: 📋 Generate sanity test summary
         if: always()

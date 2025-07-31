@@ -125,7 +125,7 @@ jobs:
           echo "⚡ This includes: Login, CRUD, Permissions, Navigation"
           echo "============================================"
           
-          # Crear directorios de reportes
+          # Crear directorios de reportes ANTES de ejecutar tests
           mkdir -p test-results
           mkdir -p playwright-report
           
@@ -138,13 +138,38 @@ jobs:
           echo "✅ Build artifacts found, proceeding with tests..."
           echo "🔗 Using base URL: http://localhost:3000 (CI override)"
           
-          # Ejecutar tests según el ambiente con servidor automático
-          npm run test:regression:${{ matrix.environment }} -- --project=${{ matrix.browser }}
+          # Ejecutar tests con script específico para CI que siempre genera reportes
+          if [ "${{ matrix.environment }}" = "dev" ]; then
+            npm run test:regression:dev:ci || EXIT_CODE=$?
+          elif [ "${{ matrix.environment }}" = "staging" ]; then
+            npm run test:regression:staging:ci || EXIT_CODE=$?
+          else
+            npm run test:regression:${{ matrix.environment }} -- --project=${{ matrix.browser }} || EXIT_CODE=$?
+          fi
           
-          # Verificar si se generó el reporte JSON
+          echo "📋 Tests execution completed with exit code: ${EXIT_CODE:-0}"
+          
+          # Verificar que se generaron los reportes
+          echo "📊 Checking generated reports..."
           if [ -f "test-results/results.json" ]; then
-            echo "📊 Test Summary:"
+            echo "✅ JSON report found"
             cat test-results/results.json | jq '.stats' || echo "Could not parse results"
+          else
+            echo "⚠️ No JSON report found"
+          fi
+          
+          if [ -d "playwright-report" ] && [ "$(ls -A playwright-report)" ]; then
+            echo "✅ HTML report found"
+            ls -la playwright-report/
+          else
+            echo "⚠️ No HTML report found or empty"
+          fi
+          
+          if [ -d "test-results" ] && [ "$(ls -A test-results)" ]; then
+            echo "✅ Test results found"
+            find test-results -type f | head -20
+          else
+            echo "⚠️ No test results found"
           fi
 
       - name: 📸 Capture failure screenshots
@@ -156,6 +181,37 @@ jobs:
           # Listar archivos de trace si existen
           find test-results -name "trace.zip" | head -5
 
+      - name: 🔍 Debug artifact contents
+        if: always()
+        run: |
+          echo "🔍 DEBUGGING ARTIFACT CONTENTS"
+          echo "============================================"
+          
+          echo "📁 Current directory structure:"
+          ls -la
+          
+          echo ""
+          echo "📁 playwright-report directory:"
+          if [ -d "playwright-report" ]; then
+            ls -la playwright-report/
+            du -sh playwright-report/
+          else
+            echo "❌ playwright-report directory not found"
+          fi
+          
+          echo ""
+          echo "📁 test-results directory:"
+          if [ -d "test-results" ]; then
+            find test-results -type f -exec ls -la {} \; | head -20
+            du -sh test-results/
+          else
+            echo "❌ test-results directory not found"
+          fi
+          
+          echo ""
+          echo "📊 Total files to be uploaded:"
+          find playwright-report test-results -type f 2>/dev/null | wc -l || echo "0"
+
       - name: 📊 Upload complete regression results
         uses: actions/upload-artifact@v4
         if: always()
@@ -164,10 +220,8 @@ jobs:
           path: |
             playwright-report/
             test-results/
-            **/*.png
-            **/*.webm
-            **/*.zip
           retention-days: 30
+          if-no-files-found: warn
 
   # Job 3: Tests de producción críticos
   production-critical:

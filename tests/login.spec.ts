@@ -109,4 +109,39 @@ test.describe('FEATURE - Autenticación y Login', () => {
       });
     });
   });
+
+  // Test que falla intencionalmente para demo del reporte
+  test('DEMO - Test que falla intencionalmente @demo', async ({ page }) => {
+    await test.step('Navegar a página inexistente', async () => {
+      await page.goto('/');
+      await expect(page).toHaveURL('/');
+    });
+
+    await test.step('Verificar elemento que no existe (FALLA INTENCIONAL)', async () => {
+      // Este test falla intencionalmente para mostrar en el reporte
+      const elementoInexistente = page.locator('[data-testid="elemento-que-no-existe"]');
+      await expect(elementoInexistente).toBeVisible({ timeout: 3000 });
+    });
+
+    await test.step('Verificar texto incorrecto (FALLA INTENCIONAL)', async () => {
+      // Este paso también falla para mostrar múltiples errores
+      await expect(page.locator('h1')).toHaveText('Texto que no existe en la página');
+    });
+  });
+
+  test('DEMO - Otro test que falla @demo @sanity', async ({ page }) => {
+    await test.step('Intentar hacer click en botón inexistente', async () => {
+      await page.goto('/');
+      
+      // Intentar hacer click en un botón que no existe
+      const botonInexistente = page.locator('button:has-text("Botón Fantasma")');
+      await expect(botonInexistente).toBeVisible({ timeout: 2000 });
+      await botonInexistente.click();
+    });
+
+    await test.step('Validar URL incorrecta (FALLA INTENCIONAL)', async () => {
+      // Verificar una URL que nunca será correcta
+      await expect(page).toHaveURL('/pagina-que-no-existe');
+    });
+  });
 });
