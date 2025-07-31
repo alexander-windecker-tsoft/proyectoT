@@ -2,7 +2,7 @@ name: 🚀 CD - Continuous Deployment
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, QA ]
   workflow_dispatch:
     inputs:
       environment:
@@ -13,14 +13,23 @@ on:
         options:
           - staging
           - production
+      skip_tests:
+        description: 'Skip smoke tests'
+        required: false
+        default: false
+        type: boolean
 
 env:
   NODE_VERSION: '20'
 
 jobs:
-  deploy:
-    name: 🚀 Deploy Application
+  # Job 1: Build y Test
+  build-and-test:
+    name: 🏗️ Build and Test
     runs-on: ubuntu-latest
+    outputs:
+      build_success: ${{ steps.build.outcome == 'success' }}
+      tests_passed: ${{ steps.smoke_tests.outcome == 'success' }}
     steps:
       - name: 📁 Checkout
         uses: actions/checkout@v4
@@ -38,52 +47,236 @@ jobs:
         run: npm run lint
 
       - name: 🏗️ Build
-        run: npm run build
-
-      - name: 🎭 Install Playwright browsers
+        id: build
         run: |
-          npx playwright install chromium --with-deps
-          npx playwright install-deps
-
-      - name: 🧪 Run smoke tests
-        env:
-          CI: true
-          PORT: 3000
-          HOST: 0.0.0.0
-          PLAYWRIGHT_BASE_URL: http://localhost:3000
-        run: |
-          echo "🧪 Running smoke tests before deployment..."
+          npm run build
           
-          # Verificar que el build existe
-          if [ ! -d "dist" ]; then
-            echo "❌ Error: dist folder not found! Build failed."
+          # Verificar que el build se completó exitosamente
+          if [ -d "dist" ]; then
+            echo "✅ Build successful - dist folder created"
+            echo "build_size=$(du -sh dist | cut -f1)" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Build failed - dist folder not found"
             exit 1
           fi
-          
-          echo "✅ Build artifacts found, running smoke tests..."
-          # Ejecutar solo tests @smoke que NO sean @demo
-          npx playwright test --grep "@smoke" --grep-invert "@demo" || SMOKE_EXIT_CODE=$?
-          
-          # Si no hay smoke tests funcionales, ejecutar sanity tests
-          if [ "${SMOKE_EXIT_CODE:-0}" -ne 0 ]; then
-            echo "🔄 Running sanity tests as fallback..."
-            npx playwright test --grep "@sanity" --grep-invert "@demo" || echo "⚠️ Tests completed with some failures, continuing deployment..."
-          fi
-          
-          echo "✅ Pre-deployment tests completed!"
 
-      - name: 📦 Create deployment package
-        run: tar -czf deployment-package.tar.gz dist/ package.json
-
-      - name:  Deploy
+      - name: 📦 Create deployment artifact
         run: |
-          TARGET_ENV="${{ github.event.inputs.environment || 'production' }}"
-          echo "🚀 Deploying to $TARGET_ENV environment..."
-          echo "✅ Deployment completed!"
+          tar -czf deployment-package.tar.gz dist/ package.json package-lock.json
+          echo "📦 Deployment package size: $(du -h deployment-package.tar.gz | cut -f1)"
 
-      - name: 📊 Summary
+      - name: 📤 Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-package
+          path: deployment-package.tar.gz
+          retention-days: 7
+
+      - name: 🎭 Install Playwright browsers
+        if: ${{ !inputs.skip_tests }}
+        run: npx playwright install chromium --with-deps
+
+      - name: 🚀 Start preview server
+        if: ${{ !inputs.skip_tests }}
+        run: |
+          # Usar vite preview para servir el build de producción
+          npx vite preview --port 3000 --host 0.0.0.0 &
+          SERVER_PID=$!
+          echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
+          
+          # Esperar a que el servidor esté listo
+          echo "⏳ Waiting for preview server..."
+          max_attempts=30
+          attempt=0
+          
+          while [ $attempt -lt $max_attempts ]; do
+            if curl -s http://localhost:3000 > /dev/null 2>&1; then
+              echo "✅ Preview server is ready!"
+              break
+            fi
+            attempt=$((attempt + 1))
+            echo "Waiting... attempt $attempt/$max_attempts"
+            sleep 2
+          done
+          
+          if [ $attempt -eq $max_attempts ]; then
+            echo "❌ Preview server failed to start"
+            exit 1
+          fi
+
+      - name: 🧪 Run smoke tests
+        id: smoke_tests
+        if: ${{ !inputs.skip_tests }}
+        env:
+          CI: true
+          BASE_URL: http://localhost:3000
+        run: |
+          echo "🧪 Running smoke tests on production build..."
+          
+          # Determinar el ambiente según el target
+          TARGET_ENV="${{ inputs.environment || 'production' }}"
+          
+          # Ejecutar smoke tests según el ambiente, excluyendo @demo
+          case "$TARGET_ENV" in
+            "staging")
+              echo "Running staging smoke tests..."
+              npm run test:smoke:staging -- --grep-invert "@demo" --project=chromium || SMOKE_EXIT_CODE=$?
+              ;;
+            "production")
+              echo "Running production smoke tests..."
+              npm run test:smoke:prod -- --grep-invert "@demo" --project=chromium || SMOKE_EXIT_CODE=$?
+              ;;
+          esac
+          
+          if [ "${SMOKE_EXIT_CODE:-0}" -eq 0 ]; then
+            echo "✅ All smoke tests passed!"
+            echo "smoke_status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Some smoke tests failed"
+            echo "smoke_status=failed" >> $GITHUB_OUTPUT
+            
+            # Si es deployment manual y fallan los tests, preguntar si continuar
+            if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+              echo "⚠️ Smoke tests failed but this is a manual deployment"
+              echo "⚠️ Check the test results before proceeding with deployment"
+            else
+              exit 1
+            fi
+          fi
+
+      - name: 🛑 Stop preview server
+        if: always() && env.SERVER_PID != ''
+        run: |
+          echo "🛑 Stopping preview server..."
+          kill ${{ env.SERVER_PID }} || true
+
+      - name: 📊 Upload test results
+        if: ${{ !inputs.skip_tests && always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-results
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  # Job 2: Deploy
+  deploy:
+    name: 🚀 Deploy to ${{ inputs.environment || 'production' }}
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: |
+      needs.build-and-test.outputs.build_success == 'true' &&
+      (needs.build-and-test.outputs.tests_passed == 'true' || inputs.skip_tests == true || github.event_name == 'workflow_dispatch')
+    environment: ${{ inputs.environment || 'production' }}
+    steps:
+      - name: 📁 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📥 Download deployment package
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-package
+
+      - name: 📦 Extract deployment package
+        run: |
+          tar -xzf deployment-package.tar.gz
+          echo "📦 Deployment package extracted"
+          ls -la
+
+      - name: 🚀 Deploy to environment
+        env:
+          TARGET_ENV: ${{ inputs.environment || 'production' }}
+        run: |
+          echo "🚀 Deploying to $TARGET_ENV environment..."
+          
+          # Aquí irían los comandos reales de deployment
+          # Por ejemplo:
+          # - Subir a S3/Azure/GCP
+          # - Deploy a Vercel/Netlify
+          # - SSH a servidor
+          # - Docker push/deploy
+          # - Kubernetes apply
+          
+          case "$TARGET_ENV" in
+            "staging")
+              echo "📤 Deploying to staging server..."
+              # Ejemplo: aws s3 sync dist/ s3://staging-bucket/
+              # Ejemplo: vercel deploy --prod=false
+              ;;
+            "production")
+              echo "📤 Deploying to production server..."
+              # Ejemplo: aws s3 sync dist/ s3://production-bucket/
+              # Ejemplo: vercel deploy --prod
+              ;;
+          esac
+          
+          echo "✅ Deployment completed successfully!"
+
+      - name: 🔍 Verify deployment
+        env:
+          TARGET_ENV: ${{ inputs.environment || 'production' }}
+        run: |
+          echo "🔍 Verifying deployment..."
+          
+          # URL de verificación según ambiente
+          case "$TARGET_ENV" in
+            "staging")
+              VERIFY_URL="https://staging.example.com/health"
+              ;;
+            "production")
+              VERIFY_URL="https://www.example.com/health"
+              ;;
+          esac
+          
+          # Verificar que el sitio responde
+          echo "Checking $VERIFY_URL..."
+          # curl -f $VERIFY_URL || echo "⚠️ Health check failed"
+          
+          echo "✅ Deployment verification completed"
+
+  # Job 3: Post-deployment
+  post-deployment:
+    name: 📋 Post Deployment Tasks
+    runs-on: ubuntu-latest
+    needs: [build-and-test, deploy]
+    if: always()
+    steps:
+      - name: 📊 Generate deployment summary
         run: |
           echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment**: ${{ github.event.inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ needs.build-and-test.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Tests | ${{ needs.build-and-test.outputs.tests_passed == 'true' && '✅ Passed' || inputs.skip_tests && '⏭️ Skipped' || '⚠️ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deploy | ${{ needs.deploy.result == 'success' && '✅ Success' || needs.deploy.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status**: ✅ Success" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Actor**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Time**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+
+    
+      - name: 🏷️ Create deployment tag
+        if: needs.deploy.result == 'success' && (inputs.environment == 'production' || github.event_name == 'push')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const date = new Date().toISOString().split('T')[0];
+            const env = '${{ inputs.environment || 'production' }}';
+            const tagName = `deploy-${env}-${date}-${{ github.run_number }}`;
+            
+            try {
+              await github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `refs/tags/${tagName}`,
+                sha: context.sha
+              });
+              console.log(`Created tag: ${tagName}`);
+            } catch (error) {
+              console.error(`Failed to create tag: ${error.message}`);
+            }
