@@ -138,13 +138,13 @@ jobs:
           echo "✅ Build artifacts found, proceeding with tests..."
           echo "🔗 Using base URL: http://localhost:3000 (CI override)"
           
-          # Ejecutar tests con script específico para CI que siempre genera reportes
+          # Ejecutar tests con reportes habilitados
           if [ "${{ matrix.environment }}" = "dev" ]; then
             npm run test:regression:dev:ci || EXIT_CODE=$?
           elif [ "${{ matrix.environment }}" = "staging" ]; then
             npm run test:regression:staging:ci || EXIT_CODE=$?
           else
-            npm run test:regression:${{ matrix.environment }} -- --project=${{ matrix.browser }} || EXIT_CODE=$?
+            npm run test:regression:dev -- --reporter=html,json,list || EXIT_CODE=$?
           fi
           
           echo "📋 Tests execution completed with exit code: ${EXIT_CODE:-0}"
