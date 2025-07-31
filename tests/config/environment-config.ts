@@ -1,10 +1,8 @@
 // Configuración de ambientes para Playwright
 import * as fs from 'fs';
 import * as path from 'path';
-import { fileURLToPath } from 'url';
 
-// Fix para __dirname en ES modules
-const __filename = fileURLToPath(import.meta.url);
+// Usar __dirname de CommonJS (funciona mejor con Playwright)
 const __dirname = path.dirname(__filename);
 
 export interface EnvironmentConfig {
@@ -48,6 +46,7 @@ function loadEnvironmentConfig(): TestConfig {
     return {
       environments: {
         dev: {
+          environment: 'dev',
           name: 'Development',
           baseURL: 'http://localhost:3000',
           timeout: 30000,
