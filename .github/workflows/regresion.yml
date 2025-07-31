@@ -58,20 +58,22 @@ jobs:
           CI: true
           PORT: 3000
           HOST: 0.0.0.0
+          TEST_ENV: dev
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
         run: |
           echo "🧪 REGRESSION TEST EXECUTION"
           echo "🌐 Branch: ${{ github.ref_name }}"
           echo "👤 Triggered by: ${{ github.actor }}"
           echo "🧪 Browser: Chromium"
-          echo "📋 Running regression test suite"
+          echo "📋 Running regression test suite (excluding @demo tests)"
           echo "============================================"
           
           # Crear directorios de reportes
           mkdir -p test-results
           mkdir -p playwright-report
           
-          # Ejecutar tests de regresión (todos los tests)
-          npx playwright test --project=chromium --reporter=list --reporter=html --reporter=json
+          # Ejecutar tests de regresión usando npm script (excluyendo @demo que fallan intencionalmente)
+          npm run test:regression:dev:ci:no-demo
 
       - name: 📸 Capture failure screenshots
         if: failure()

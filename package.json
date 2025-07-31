@@ -38,6 +38,8 @@
     "test:regression:staging": "npx cross-env TEST_ENV=staging playwright test",
     "test:regression:staging:ci": "npx cross-env TEST_ENV=staging playwright test --reporter=html,json,list",
     "test:regression:dev:ci": "npx cross-env TEST_ENV=dev playwright test --reporter=html,json,list",
+    "test:regression:dev:ci:no-demo": "npx cross-env TEST_ENV=dev playwright test --reporter=html,json,list --grep-invert @demo",
+    "test:regression:staging:ci:no-demo": "npx cross-env TEST_ENV=staging playwright test --reporter=html,json,list --grep-invert @demo",
     "test:regression:prod": "TEST_ENV=prod playwright test --grep @smoke",
     "regression:complete": "npm run test:regression:dev && npm run test:regression:staging && npm run test:regression:prod",
     "ci:install": "npm ci",
