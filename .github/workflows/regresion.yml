@@ -12,6 +12,13 @@ on:
       - main
       - QA
 
+# Permisos necesarios para comentar en PRs
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  actions: read
+
 env:
   NODE_VERSION: '20'
 
@@ -88,7 +95,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: regression-results-${{ github.ref_name }}-${{ github.run_attempt }}
+          name: regression-results-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             playwright-report/
             test-results/
