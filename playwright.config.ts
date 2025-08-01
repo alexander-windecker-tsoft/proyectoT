@@ -41,7 +41,13 @@ export default defineConfig({
       outputFolder: 'playwright-report'
     }],
     ['json', { 
-      outputFile: fullConfig.reporting.json?.outputFile || 'test-results/results.json' 
+      outputFile: (
+        fullConfig.reporting.json &&
+        typeof fullConfig.reporting.json === 'object' &&
+        'outputFile' in fullConfig.reporting.json
+          ? (fullConfig.reporting.json as { outputFile?: string }).outputFile
+          : undefined
+      ) || 'test-results/results.json'
     }],
     ['junit', { 
       outputFile: 'test-results/junit.xml' 
@@ -50,11 +56,13 @@ export default defineConfig({
     ['github'] // Reporter específico para GitHub Actions
   ] : [
     ['html', { 
-      open: (fullConfig.reporting.html && 'open' in fullConfig.reporting.html ? fullConfig.reporting.html.open : 'never'),
+      open: (fullConfig.reporting.html && typeof fullConfig.reporting.html === 'object' && 'open' in fullConfig.reporting.html ? fullConfig.reporting.html.open : 'never'),
       outputFolder: 'playwright-report'
     }],
     ['json', { 
-      outputFile: fullConfig.reporting.json?.outputFile || 'test-results/results.json' 
+      outputFile: (fullConfig.reporting.json && typeof fullConfig.reporting.json === 'object' && 'outputFile' in fullConfig.reporting.json
+        ? (fullConfig.reporting.json as { outputFile?: string }).outputFile
+        : undefined) || 'test-results/results.json'
     }],
     ['list']
   ],

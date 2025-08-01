@@ -3,11 +3,18 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 
-// Fix para __dirname en ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Solución compatible con ES modules y CommonJS
+let __dirname: string;
+try {
+  // Intenta usar import.meta.url (ES modules)
+  __dirname = path.dirname(fileURLToPath(import.meta.url));
+} catch {
+  // Fallback para CommonJS
+  __dirname = path.dirname(__filename);
+}
 
 export interface EnvironmentConfig {
+  environment: string;
   name: string;
   baseURL: string;
   timeout: number;
@@ -47,6 +54,7 @@ function loadEnvironmentConfig(): TestConfig {
     return {
       environments: {
         dev: {
+          environment: 'dev',
           name: 'Development',
           baseURL: 'http://localhost:3000',
           timeout: 30000,

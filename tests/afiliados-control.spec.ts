@@ -182,41 +182,4 @@ test.describe('FEATURE - Control de Afiliados', () => {
       }
     });
   });
-
-  // Tests de demo que fallan intencionalmente
-  test.describe('DEMO - Tests que fallan para mostrar reportes', () => {
-    test('DEMO - Verificar funcionalidad inexistente @demo', async ({ page }) => {
-      const loginPage = new LoginPage(page);
-      await loginPage.login(CURRENT_ROLES[0].username, CURRENT_ROLES[0].password);
-      
-      await test.step('Buscar botón que no existe', async () => {
-        await page.goto('/dashboard');
-        
-        // Intentar encontrar un botón que no existe
-        const botonInexistente = page.locator('button:has-text("Exportar Todo")');
-        await expect(botonInexistente).toBeVisible({ timeout: 3000 });
-      });
-
-      await test.step('Verificar modal inexistente', async () => {
-        // Intentar verificar un modal que no se va a abrir
-        const modal = page.locator('[data-testid="modal-confirmacion"]');
-        await expect(modal).toBeVisible({ timeout: 2000 });
-      });
-    });
-
-    test('DEMO - Test de navegación incorrecta @demo @smoke', async ({ page }) => {
-      await test.step('Intentar acceder a ruta protegida sin login', async () => {
-        await page.goto('/admin-secret-panel');
-        
-        // Esperamos estar en una página que no existe
-        await expect(page).toHaveURL('/admin-secret-panel');
-      });
-
-      await test.step('Verificar mensaje de error específico', async () => {
-        // Buscar un mensaje de error muy específico que no aparece
-        const errorEspecifico = page.locator('text="Error 403: Acceso denegado por el sistema"');
-        await expect(errorEspecifico).toBeVisible({ timeout: 2000 });
-      });
-    });
-  });
 });
