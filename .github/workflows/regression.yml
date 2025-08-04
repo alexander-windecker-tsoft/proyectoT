@@ -304,24 +304,24 @@ jobs:
 
       - name: 📊 Generate comprehensive regression report
         run: |
-          echo "# 🔄 COMPLETE REGRESSION TEST RESULTS" >> $GITHUB_STEP_SUMMARY
+          echo "# 🔄 RESULTADOS COMPLETOS DE TESTS DE REGRESIÓN" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Run ID:** ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**ID de Ejecución:** ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Rama:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Ejecutado por:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          echo "## 📊 Test Execution Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Resumen de Ejecución de Tests" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Test Suite | Environment | Browser | Status | Artifacts |" >> $GITHUB_STEP_SUMMARY
-          echo "|------------|-------------|---------|--------|-----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Suite de Tests | Ambiente | Navegador | Estado | Artefactos |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------------|----------|-----------|--------|------------|" >> $GITHUB_STEP_SUMMARY
           
           # Procesar resultados de regresión
           for env in dev staging; do
             report_dir="./regression-reports/regression-${env}-chromium-1"
             if [ -d "$report_dir" ]; then
-              status="✅ Completed"
+              status="✅ Completado"
               
               # Verificar si hay fallos
               if [ -f "$report_dir/test-results/results.json" ]; then
@@ -330,45 +330,45 @@ jobs:
                 
                 failed=$(cat "$report_dir/test-results/results.json" | jq '.stats.failed' 2>/dev/null || echo "0")
                 if [ "$failed" -gt 0 ]; then
-                  status="❌ Failed ($failed tests)"
+                  status="❌ Falló ($failed tests)"
                 fi
               fi
               
-              echo "| 🔄 Full Regression | $env | chromium | $status | [📥 Download](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🔄 Regresión Completa | $env | chromium | $status | [📥 Descargar](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) |" >> $GITHUB_STEP_SUMMARY
             fi
           done
           
           # Verificar tests críticos de producción
           if [ -d "./regression-reports/production-critical-${{ github.run_id }}" ]; then
-            echo "| 🎯 Critical Path | production | chromium | ✅ Passed | [📥 Download](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🎯 Ruta Crítica | producción | chromium | ✅ Aprobado | [📥 Descargar](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) |" >> $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## 🎯 COMPLETE REGRESSION COVERAGE" >> $GITHUB_STEP_SUMMARY
+          echo "## 🎯 COBERTURA COMPLETA DE REGRESIÓN" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### ✅ What was comprehensively tested:" >> $GITHUB_STEP_SUMMARY
-          echo "- **🔐 Authentication System**: Complete login/logout flows" >> $GITHUB_STEP_SUMMARY
-          echo "- **👥 Role-based Access**: Admin, Inspector, Facturación permissions" >> $GITHUB_STEP_SUMMARY
-          echo "- **📝 CRUD Operations**: Create, Read, Update functionality" >> $GITHUB_STEP_SUMMARY
-          echo "- **🔄 Data Validation**: Form validation and error handling" >> $GITHUB_STEP_SUMMARY
-          echo "- **🧪 UI Components**: Interface elements and navigation" >> $GITHUB_STEP_SUMMARY
-          echo "- **⚡ Performance**: Load times and responsiveness" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### 🌐 Environment Coverage:" >> $GITHUB_STEP_SUMMARY
-          echo "- **Development**: Full test suite validation" >> $GITHUB_STEP_SUMMARY
-          echo "- **Staging**: Production-like environment testing" >> $GITHUB_STEP_SUMMARY
-          echo "- **Production**: Critical path verification (@smoke tests)" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Lo que fue probado exhaustivamente:" >> $GITHUB_STEP_SUMMARY
+          echo "- **🔐 Sistema de Autenticación**: Flujos completos de login/logout" >> $GITHUB_STEP_SUMMARY
+          echo "- **👥 Acceso Basado en Roles**: Permisos de Admin, Inspector, Facturación" >> $GITHUB_STEP_SUMMARY
+          echo "- **📝 Operaciones CRUD**: Funcionalidad de Crear, Leer, Actualizar" >> $GITHUB_STEP_SUMMARY
+          echo "- **🔄 Validación de Datos**: Validación de formularios y manejo de errores" >> $GITHUB_STEP_SUMMARY
+          echo "- **🧪 Componentes de UI**: Elementos de interfaz y navegación" >> $GITHUB_STEP_SUMMARY
+          echo "- **⚡ Rendimiento**: Tiempos de carga y capacidad de respuesta" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          echo "### 📊 Test Files Included:" >> $GITHUB_STEP_SUMMARY
-          echo "Based on your test structure:" >> $GITHUB_STEP_SUMMARY
+          echo "### 🌐 Cobertura de Ambientes:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Desarrollo**: Validación completa de suite de tests" >> $GITHUB_STEP_SUMMARY
+          echo "- **Staging**: Pruebas en ambiente similar a producción" >> $GITHUB_STEP_SUMMARY
+          echo "- **Producción**: Verificación de ruta crítica (tests @smoke)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### 📊 Archivos de Tests Incluidos:" >> $GITHUB_STEP_SUMMARY
+          echo "Basado en la estructura de tus tests:" >> $GITHUB_STEP_SUMMARY
           echo "- login.spec.ts" >> $GITHUB_STEP_SUMMARY
           echo "- afiliados-control.spec.ts" >> $GITHUB_STEP_SUMMARY
-          echo "- Additional spec files in tests/" >> $GITHUB_STEP_SUMMARY
+          echo "- Archivos spec adicionales en tests/" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          echo "## 🚀 DEPLOYMENT READINESS" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 PREPARACIÓN PARA DESPLIEGUE" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Determinar si todos los tests pasaron
@@ -384,22 +384,22 @@ jobs:
           done
           
           if [ "$all_passed" = true ]; then
-            echo "✅ **ALL REGRESSION TESTS PASSED**" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **TODOS LOS TESTS DE REGRESIÓN APROBADOS**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "- 🎯 Application is thoroughly tested and ready for production" >> $GITHUB_STEP_SUMMARY
-            echo "- 📊 Comprehensive coverage across all critical functionality" >> $GITHUB_STEP_SUMMARY
-            echo "- 🔒 Security and permissions validated" >> $GITHUB_STEP_SUMMARY
-            echo "- 💪 Confident deployment recommendation" >> $GITHUB_STEP_SUMMARY
+            echo "- 🎯 La aplicación está completamente probada y lista para producción" >> $GITHUB_STEP_SUMMARY
+            echo "- 📊 Cobertura integral de toda la funcionalidad crítica" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔒 Seguridad y permisos validados" >> $GITHUB_STEP_SUMMARY
+            echo "- 💪 Recomendación de despliegue con confianza" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ **SOME TESTS FAILED**" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **ALGUNOS TESTS FALLARON**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "- ⚠️ Review failed tests before deploying" >> $GITHUB_STEP_SUMMARY
-            echo "- 📝 Check test reports for details" >> $GITHUB_STEP_SUMMARY
-            echo "- 🔍 Fix issues and re-run regression suite" >> $GITHUB_STEP_SUMMARY
+            echo "- ⚠️ Revisar tests fallidos antes de desplegar" >> $GITHUB_STEP_SUMMARY
+            echo "- 📝 Verificar reportes de tests para detalles" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔍 Corregir problemas y re-ejecutar suite de regresión" >> $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📁 **Detailed HTML reports available in workflow artifacts**" >> $GITHUB_STEP_SUMMARY
+          echo "📁 **Reportes HTML detallados disponibles en artefactos del workflow**" >> $GITHUB_STEP_SUMMARY
 
       - name: 💬 Comment on PR
         if: github.event_name == 'pull_request'
@@ -407,8 +407,8 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            let devStatus = '✅ Passed';
-            let stagingStatus = '✅ Passed';
+            let devStatus = '✅ Aprobado';
+            let stagingStatus = '✅ Aprobado';
             
             // Check for failures
             try {
@@ -416,11 +416,11 @@ jobs:
               if (fs.existsSync(devResults)) {
                 const data = JSON.parse(fs.readFileSync(devResults, 'utf8'));
                 if (data.stats.failed > 0) {
-                  devStatus = `❌ Failed (${data.stats.failed} tests)`;
+                  devStatus = `❌ Falló (${data.stats.failed} tests)`;
                 }
               }
             } catch (e) {
-              console.log('Could not read dev results');
+              console.log('No se pudo leer resultados de dev');
             }
             
             try {
@@ -428,29 +428,29 @@ jobs:
               if (fs.existsSync(stagingResults)) {
                 const data = JSON.parse(fs.readFileSync(stagingResults, 'utf8'));
                 if (data.stats.failed > 0) {
-                  stagingStatus = `❌ Failed (${data.stats.failed} tests)`;
+                  stagingStatus = `❌ Falló (${data.stats.failed} tests)`;
                 }
               }
             } catch (e) {
-              console.log('Could not read staging results');
+              console.log('No se pudo leer resultados de staging');
             }
             
-            const summary = `## 🔄 Regression Test Results
+            const summary = `## 🔄 Resultados de Tests de Regresión
             
-            | Environment | Status | Details |
-            |-------------|--------|---------|
-            | Development | ${devStatus} | Full regression suite |
-            | Staging | ${stagingStatus} | Full regression suite |
-            | Production | ✅ Passed | Critical path only |
+            | Ambiente | Estado | Detalles |
+            |----------|--------|----------|
+            | Desarrollo | ${devStatus} | Suite completa de regresión |
+            | Staging | ${stagingStatus} | Suite completa de regresión |
+            | Producción | ✅ Aprobado | Solo ruta crítica |
             
-            [View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            [Ver reporte detallado](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
             
-            ### 📋 Test Coverage
-            - Login flows
-            - CRUD operations  
-            - Role-based access
-            - Form validations
-            - UI/UX tests
+            ### 📋 Cobertura de Tests
+            - Flujos de login
+            - Operaciones CRUD  
+            - Acceso basado en roles
+            - Validaciones de formularios
+            - Tests de UI/UX
             `;
             
             github.rest.issues.createComment({
@@ -495,19 +495,19 @@ jobs:
       - name: 📧 Send email using ntfy.sh (reliable free service)
         run: |
           # Usar ntfy.sh que es más confiable
-          curl -d "🔄 REGRESSION TEST COMPLETED
+          curl -d "🔄 TESTS DE REGRESIÓN COMPLETADOS
           
-          📅 Date: $(date)
-          🌟 Branch: ${{ github.ref_name }}
-          🆔 Run ID: ${{ github.run_id }}
-          👤 Triggered by: ${{ github.actor }}
+          📅 Fecha: $(date)
+          🌟 Rama: ${{ github.ref_name }}
+          🆔 ID de Ejecución: ${{ github.run_id }}
+          👤 Ejecutado por: ${{ github.actor }}
           
-          📋 View complete results:
+          📋 Ver resultados completos:
           https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           
-          ✅ All test artifacts available for download
-          📊 Detailed HTML reports included" \
-            -H "Title: Regression Test Report - ${{ github.ref_name }}" \
+          ✅ Todos los artefactos de tests disponibles para descarga
+          📊 Reportes HTML detallados incluidos" \
+            -H "Title: Reporte de Tests de Regresión - ${{ github.ref_name }}" \
             -H "Tags: regression,test,automation" \
             -H "Priority: 3" \
             -H "Email: alexander.windecker@tsoftglobal.com" \
@@ -519,8 +519,8 @@ jobs:
           curl -X POST "https://maker.ifttt.com/trigger/regression_test/with/key/dQw4w9WgXcQ" \
             -H "Content-Type: application/json" \
             -d '{
-              "value1": "Regression Test - ${{ github.ref_name }}",
-              "value2": "Run ID: ${{ github.run_id }}",
+              "value1": "Tests de Regresión - ${{ github.ref_name }}",
+              "value2": "ID de Ejecución: ${{ github.run_id }}",
               "value3": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }' || echo "Alternative notification failed"
 
@@ -532,32 +532,32 @@ jobs:
             -d '{
               "personalizations": [{"to": [{"email": "alexander.windecker@tsoftglobal.com"}]}],
               "from": {"email": "noreply@github.com"},
-              "subject": "Regression Test Report - ${{ github.ref_name }}",
-              "content": [{"type": "text/plain", "value": "Regression testing completed for branch ${{ github.ref_name }}.\n\nView results: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\nDate: $(date)\nTriggered by: ${{ github.actor }}"}]
+              "subject": "Reporte de Tests de Regresión - ${{ github.ref_name }}",
+              "content": [{"type": "text/plain", "value": "Tests de regresión completados para la rama ${{ github.ref_name }}.\n\nVer resultados: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\nFecha: $(date)\nEjecutado por: ${{ github.actor }}"}]
             }' \
             "https://httpbin.org/post" || echo "Third method completed"
 
       - name: 📊 Summary notification
         run: |
-          echo "🔄 REGRESSION TESTING COMPLETED"
-          echo "================================"
-          echo "� Date: $(date)"
-          echo "🌟 Branch: ${{ github.ref_name }}"
-          echo "🆔 Run ID: ${{ github.run_id }}"
-          echo "� Triggered by: ${{ github.actor }}"
+          echo "🔄 TESTS DE REGRESIÓN COMPLETADOS"
+          echo "================================="
+          echo "📅 Fecha: $(date)"
+          echo "🌟 Rama: ${{ github.ref_name }}"
+          echo "🆔 ID de Ejecución: ${{ github.run_id }}"
+          echo "👤 Ejecutado por: ${{ github.actor }}"
           echo ""
-          echo "📧 Email notifications attempted via multiple methods:"
-          echo "   1. ntfy.sh service (with email forwarding)"
-          echo "   2. IFTTT webhook (if configured)"
-          echo "   3. Direct HTTP notification"
+          echo "📧 Notificaciones por email intentadas mediante múltiples métodos:"
+          echo "   1. Servicio ntfy.sh (con redirección de email)"
+          echo "   2. Webhook IFTTT (si está configurado)"
+          echo "   3. Notificación HTTP directa"
           echo ""
-          echo "📋 View complete results at:"
+          echo "📋 Ver resultados completos en:"
           echo "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           echo ""
-          echo "✅ All test artifacts are available for download"
-          echo "📊 Detailed HTML reports included in artifacts"
+          echo "✅ Todos los artefactos de tests están disponibles para descarga"
+          echo "📊 Reportes HTML detallados incluidos en artefactos"
           echo ""
-          echo "💡 Alternative: Check GitHub Actions tab for notifications"
+          echo "💡 Alternativa: Revisar pestaña GitHub Actions para notificaciones"
 
   # Job 7: Publicar reportes en GitHub Pages
   publish-reports:
