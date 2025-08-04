@@ -1,6 +1,6 @@
 name: 🔄 Regression Básica
 
-run-name: ${{ github.actor }} triggered Regression Test on ${{ github.ref_name }}
+run-name: ${{ github.actor }} ejecutó Tests de Regresión en ${{ github.ref_name }}
 
 on:
   push:
@@ -54,10 +54,10 @@ jobs:
       - name: 🔍 Verify build artifacts
         run: |
           if [ ! -d "dist" ]; then
-            echo "❌ Error: dist folder not found! Build failed."
+            echo "❌ Error: carpeta dist no encontrada! El build falló."
             exit 1
           fi
-          echo "✅ Build artifacts found"
+          echo "✅ Artefactos de build encontrados"
           ls -la dist/
 
       - name: 🧪 Run Playwright regression tests
@@ -68,11 +68,11 @@ jobs:
           TEST_ENV: dev
           PLAYWRIGHT_BASE_URL: http://localhost:3000
         run: |
-          echo "🧪 REGRESSION TEST EXECUTION"
-          echo "🌐 Branch: ${{ github.ref_name }}"
-          echo "👤 Triggered by: ${{ github.actor }}"
-          echo "🧪 Browser: Chromium"
-          echo "📋 Running regression test suite (excluding @demo tests)"
+          echo "🧪 EJECUCIÓN DE TESTS DE REGRESIÓN"
+          echo "🌐 Rama: ${{ github.ref_name }}"
+          echo "👤 Ejecutado por: ${{ github.actor }}"
+          echo "🧪 Navegador: Chromium"
+          echo "📋 Ejecutando suite de tests de regresión (excluyendo tests @demo)"
           echo "============================================"
           
           # Crear directorios de reportes
@@ -85,7 +85,7 @@ jobs:
       - name: 📸 Capture failure screenshots
         if: failure()
         run: |
-          echo "📸 Capturing failure evidence..."
+          echo "📸 Capturando evidencia de fallos..."
           find test-results -name "*.png" -o -name "*.webm" | head -10
           
           # Listar archivos de trace si existen
@@ -107,11 +107,11 @@ jobs:
       - name: 📋 Generate test summary
         if: always()
         run: |
-          echo "# 🔄 REGRESSION TEST RESULTS" >> $GITHUB_STEP_SUMMARY
+          echo "# 🔄 RESULTADOS DE TESTS DE REGRESIÓN" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Run ID:** ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Rama:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Ejecutado por:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**ID de Ejecución:** ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Verificar resultados
@@ -123,37 +123,37 @@ jobs:
             failed=$(cat test-results/results.json | jq '.stats.failed' 2>/dev/null || echo "0")
             skipped=$(cat test-results/results.json | jq '.stats.skipped' 2>/dev/null || echo "0")
             
-            echo "## 📊 Test Statistics" >> $GITHUB_STEP_SUMMARY
+            echo "## 📊 Estadísticas de Tests" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "| Status | Count |" >> $GITHUB_STEP_SUMMARY
-            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-            echo "| ✅ Passed | $passed |" >> $GITHUB_STEP_SUMMARY
-            echo "| ❌ Failed | $failed |" >> $GITHUB_STEP_SUMMARY
-            echo "| ⏭️ Skipped | $skipped |" >> $GITHUB_STEP_SUMMARY
+            echo "| Estado | Cantidad |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|----------|" >> $GITHUB_STEP_SUMMARY
+            echo "| ✅ Aprobados | $passed |" >> $GITHUB_STEP_SUMMARY
+            echo "| ❌ Fallidos | $failed |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⏭️ Omitidos | $skipped |" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             
             if [ "$failed" -gt 0 ]; then
-              echo "## ❌ REGRESSION FAILED" >> $GITHUB_STEP_SUMMARY
+              echo "## ❌ REGRESIÓN FALLÓ" >> $GITHUB_STEP_SUMMARY
               echo "" >> $GITHUB_STEP_SUMMARY
-              echo "- ⚠️ $failed test(s) failed" >> $GITHUB_STEP_SUMMARY
-              echo "- 🔍 Check test reports for details" >> $GITHUB_STEP_SUMMARY
-              echo "- 📁 Artifacts available for download" >> $GITHUB_STEP_SUMMARY
-              echo "- 🚫 **DO NOT MERGE** until tests pass" >> $GITHUB_STEP_SUMMARY
+              echo "- ⚠️ $failed test(s) fallaron" >> $GITHUB_STEP_SUMMARY
+              echo "- 🔍 Revisa los reportes de tests para detalles" >> $GITHUB_STEP_SUMMARY
+              echo "- 📁 Artefactos disponibles para descarga" >> $GITHUB_STEP_SUMMARY
+              echo "- 🚫 **NO FUSIONAR** hasta que los tests pasen" >> $GITHUB_STEP_SUMMARY
             else
-              echo "## ✅ REGRESSION PASSED" >> $GITHUB_STEP_SUMMARY
+              echo "## ✅ REGRESIÓN APROBADA" >> $GITHUB_STEP_SUMMARY
               echo "" >> $GITHUB_STEP_SUMMARY
-              echo "- 🎯 All tests passed successfully" >> $GITHUB_STEP_SUMMARY
-              echo "- 🚀 Ready for deployment" >> $GITHUB_STEP_SUMMARY
-              echo "- 💪 Code quality validated" >> $GITHUB_STEP_SUMMARY
+              echo "- 🎯 Todos los tests pasaron exitosamente" >> $GITHUB_STEP_SUMMARY
+              echo "- 🚀 Listo para despliegue" >> $GITHUB_STEP_SUMMARY
+              echo "- 💪 Calidad de código validada" >> $GITHUB_STEP_SUMMARY
             fi
           else
-            echo "## ⚠️ NO TEST RESULTS FOUND" >> $GITHUB_STEP_SUMMARY
+            echo "## ⚠️ NO SE ENCONTRARON RESULTADOS DE TESTS" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Could not find test results file. Check workflow logs." >> $GITHUB_STEP_SUMMARY
+            echo "No se pudo encontrar el archivo de resultados de tests. Revisa los logs del workflow." >> $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📁 **Detailed HTML reports available in workflow artifacts**" >> $GITHUB_STEP_SUMMARY
+          echo "📁 **Reportes HTML detallados disponibles en artefactos del workflow**" >> $GITHUB_STEP_SUMMARY
 
       - name: 💬 Comment on PR
         if: github.event_name == 'pull_request'
@@ -161,7 +161,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            let status = '✅ All tests passed';
+            let status = '✅ Todos los tests pasaron';
             let emoji = '✅';
             
             // Check for failures
@@ -169,30 +169,30 @@ jobs:
               if (fs.existsSync('test-results/results.json')) {
                 const data = JSON.parse(fs.readFileSync('test-results/results.json', 'utf8'));
                 if (data.stats.failed > 0) {
-                  status = `❌ ${data.stats.failed} test(s) failed`;
+                  status = `❌ ${data.stats.failed} test(s) fallaron`;
                   emoji = '❌';
                 }
               }
             } catch (e) {
-              console.log('Could not read test results');
-              status = '⚠️ Could not determine test status';
+              console.log('No se pudo leer los resultados de tests');
+              status = '⚠️ No se pudo determinar el estado de los tests';
               emoji = '⚠️';
             }
             
-            const summary = `## ${emoji} Regression Test Results
+            const summary = `## ${emoji} Resultados de Tests de Regresión
             
-            **Status:** ${status}
-            **Branch:** ${{ github.ref_name }}
-            **Triggered by:** ${{ github.actor }}
+            **Estado:** ${status}
+            **Rama:** ${{ github.ref_name }}
+            **Ejecutado por:** ${{ github.actor }}
             
-            [📊 View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            [📊 Ver reporte detallado](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
             
-            ### 🧪 Test Coverage
-            - ✅ Login flows
-            - ✅ CRUD operations  
-            - ✅ Role-based access
-            - ✅ Form validations
-            - ✅ UI/UX components
+            ### 🧪 Cobertura de Tests
+            - ✅ Flujos de login
+            - ✅ Operaciones CRUD  
+            - ✅ Acceso basado en roles
+            - ✅ Validaciones de formularios
+            - ✅ Componentes UI/UX
             `;
             
             github.rest.issues.createComment({

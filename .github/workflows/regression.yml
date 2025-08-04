@@ -591,31 +591,36 @@ jobs:
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>📊 Test Reports - ProyectoT</title>
+            <title>📊 Reportes de Testing - ProyectoT</title>
             <style>
               body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
               .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-              h1 { color: #0366d6; margin-bottom: 30px; }
-              .report-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-              .report-card { border: 1px solid #e1e4e8; border-radius: 6px; padding: 20px; background: #fafbfc; }
-              .report-card h3 { margin-top: 0; color: #24292e; }
-              .report-link { display: inline-block; background: #0366d6; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; margin-top: 10px; }
+              h1 { color: #0366d6; margin-bottom: 30px; text-align: center; }
+              .report-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-top: 30px; }
+              .report-card { border: 1px solid #e1e4e8; border-radius: 8px; padding: 25px; background: #fafbfc; transition: transform 0.2s, box-shadow 0.2s; }
+              .report-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+              .report-card h3 { margin-top: 0; color: #24292e; font-size: 1.2em; }
+              .report-link { display: inline-block; background: #0366d6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; margin-top: 15px; font-weight: 500; transition: background 0.2s; }
               .report-link:hover { background: #0256cc; }
-              .status-success { color: #28a745; }
-              .status-failure { color: #d73a49; }
-              .meta { color: #586069; font-size: 14px; margin-top: 10px; }
+              .status-success { color: #28a745; font-weight: bold; }
+              .status-failure { color: #d73a49; font-weight: bold; }
+              .meta { color: #586069; font-size: 14px; margin: 20px 0; padding: 20px; background: #f6f8fa; border-radius: 6px; border-left: 4px solid #0366d6; }
+              .intro { text-align: center; color: #586069; margin-bottom: 20px; font-size: 16px; }
+              .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e1e4e8; color: #586069; text-align: center; }
+              .footer a { color: #0366d6; text-decoration: none; }
+              .footer a:hover { text-decoration: underline; }
             </style>
           </head>
           <body>
             <div class="container">
-              <h1>📊 Test Reports Dashboard</h1>
-              <p>Reportes automáticos de testing para <strong>ProyectoT</strong></p>
+              <h1>📊 Panel de Reportes de Testing</h1>
+              <p class="intro">Reportes automáticos de pruebas de regresión para <strong>ProyectoT</strong></p>
               
               <div class="meta">
-                <strong>🔄 Run ID:</strong> ${{ github.run_id }}<br>
-                <strong>🌟 Branch:</strong> ${{ github.ref_name }}<br>
-                <strong>📅 Generated:</strong> $(date)<br>
-                <strong>👤 Triggered by:</strong> ${{ github.actor }}
+                <strong>🔄 ID de Ejecución:</strong> ${{ github.run_id }}<br>
+                <strong>🌟 Rama:</strong> ${{ github.ref_name }}<br>
+                <strong>📅 Generado:</strong> $(date)<br>
+                <strong>👤 Ejecutado por:</strong> ${{ github.actor }}
               </div>
               
               <div class="report-grid">
@@ -629,12 +634,12 @@ jobs:
               cp -r "$report_dir/playwright-report" "./pages/report-${env}"
               
               # Determinar status
-              status="✅ Passed"
+              status="✅ Aprobado"
               status_class="status-success"
               if [ -f "$report_dir/test-results/results.json" ]; then
                 failed=$(cat "$report_dir/test-results/results.json" | jq '.stats.failed' 2>/dev/null || echo "0")
                 if [ "$failed" -gt 0 ]; then
-                  status="❌ Failed ($failed tests)"
+                  status="❌ Falló ($failed pruebas)"
                   status_class="status-failure"
                 fi
               fi
@@ -642,10 +647,10 @@ jobs:
               # Agregar tarjeta del reporte
               cat >> ./pages/index.html << EOF
                 <div class="report-card">
-                  <h3>🧪 ${env^} Environment</h3>
-                  <p class="${status_class}"><strong>Status:</strong> ${status}</p>
-                  <p>Complete regression test suite including login flows, CRUD operations, permissions, and UI tests.</p>
-                  <a href="./report-${env}/index.html" class="report-link">📋 View Detailed Report</a>
+                  <h3>🧪 Ambiente ${env^}</h3>
+                  <p class="${status_class}"><strong>Estado:</strong> ${status}</p>
+                  <p>Suite completa de pruebas de regresión incluyendo flujos de login, operaciones CRUD, permisos y pruebas de interfaz.</p>
+                  <a href="./report-${env}/index.html" class="report-link">📋 Ver Reporte Detallado</a>
                 </div>
           EOF
             fi
@@ -657,10 +662,10 @@ jobs:
             cp -r "$prod_report/playwright-report" "./pages/report-production"
             cat >> ./pages/index.html << 'EOF'
                 <div class="report-card">
-                  <h3>🎯 Production Critical Path</h3>
-                  <p class="status-success"><strong>Status:</strong> ✅ Passed</p>
-                  <p>Critical functionality tests - smoke tests for production readiness validation.</p>
-                  <a href="./report-production/index.html" class="report-link">📋 View Critical Tests</a>
+                  <h3>🎯 Ruta Crítica de Producción</h3>
+                  <p class="status-success"><strong>Estado:</strong> ✅ Aprobado</p>
+                  <p>Pruebas de funcionalidad crítica - smoke tests para validación de disponibilidad en producción.</p>
+                  <a href="./report-production/index.html" class="report-link">📋 Ver Pruebas Críticas</a>
                 </div>
           EOF
           fi
@@ -669,10 +674,14 @@ jobs:
           cat >> ./pages/index.html << 'EOF'
               </div>
               
-              <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e1e4e8; color: #586069;">
-                <p>🔄 Reports are automatically generated after each regression test run.</p>
-                <p>📧 Email notifications are sent to the development team.</p>
-                <p>🔗 <a href="https://github.com/${{ github.repository }}">View Source Code</a></p>
+              <div class="footer">
+                <p>🔄 Los reportes se generan automáticamente después de cada ejecución de pruebas de regresión.</p>
+                <p>📧 Las notificaciones por email se envían al equipo de desarrollo.</p>
+                <p>🔗 <a href="https://github.com/${{ github.repository }}">Ver Código Fuente</a> | 
+                   📊 <a href="https://github.com/${{ github.repository }}/actions">Ver Historial de Ejecuciones</a></p>
+                <p style="margin-top: 15px; font-size: 12px; color: #959da5;">
+                  ProyectoT - Sistema de Testing Automatizado | Generado con ❤️ por GitHub Actions
+                </p>
               </div>
             </div>
           </body>
