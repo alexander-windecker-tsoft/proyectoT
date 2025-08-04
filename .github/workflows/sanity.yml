@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Test environment'
+        description: 'Ambiente de tests'
         required: true
         default: 'dev'
         type: choice
@@ -13,7 +13,7 @@ on:
           - staging
           - prod
       browser:
-        description: 'Browser to test'
+        description: 'Navegador para probar'
         required: true
         default: 'chromium'
         type: choice
@@ -22,7 +22,7 @@ on:
           - firefox
           - webkit
       os:
-        description: 'Operating System'
+        description: 'Sistema Operativo'
         required: true
         default: 'ubuntu-latest'
         type: choice
@@ -31,7 +31,7 @@ on:
           - windows-latest
           - macos-latest
       test_run:
-        description: 'Test to run'
+        description: 'Test a ejecutar'
         required: true
         default: 'tests/'
         type: choice
@@ -65,10 +65,10 @@ jobs:
 
       - name: 🔍 Validate test selection
         run: |
-          echo "🧪 SANITY TEST VALIDATION"
-          echo "🌐 Environment: ${{ github.event.inputs.environment }}"
-          echo "🖥️ OS: ${{ github.event.inputs.os }}"
-          echo "🧪 Browser: ${{ github.event.inputs.browser }}"
+          echo "🧪 VALIDACIÓN DE TESTS SANITY"
+          echo "🌐 Ambiente: ${{ github.event.inputs.environment }}"
+          echo "🖥️ SO: ${{ github.event.inputs.os }}"
+          echo "🧪 Navegador: ${{ github.event.inputs.browser }}"
           echo "📁 Test: ${{ github.event.inputs.test_run }}"
           echo "============================================"
           
@@ -107,10 +107,10 @@ jobs:
           HOST: 0.0.0.0
           PLAYWRIGHT_BASE_URL: http://localhost:3000
         run: |
-          echo "🧪 SANITY TESTS EXECUTION"
-          echo "🌐 Environment: ${{ github.event.inputs.environment }}"
-          echo "🖥️ OS: ${{ github.event.inputs.os }}"
-          echo "🧪 Browser: ${{ github.event.inputs.browser }}"
+          echo "🧪 EJECUCIÓN DE TESTS SANITY"
+          echo "🌐 Ambiente: ${{ github.event.inputs.environment }}"
+          echo "🖥️ SO: ${{ github.event.inputs.os }}"
+          echo "🧪 Navegador: ${{ github.event.inputs.browser }}"
           echo "📁 Test: ${{ github.event.inputs.test_run }}"
           echo "============================================"
           
@@ -120,61 +120,61 @@ jobs:
           
           # Verificar que el build existe
           if [ ! -d "dist" ]; then
-            echo "❌ Error: dist folder not found! Build failed."
+            echo "❌ Error: carpeta dist no encontrada! El build falló."
             exit 1
           fi
           
           # Ejecutar tests según la selección
           if [ "${{ github.event.inputs.test_run }}" = "tests/" ]; then
-            echo "🔄 Running ALL tests..."
+            echo "🔄 Ejecutando TODOS los tests..."
             npm run test || EXIT_CODE=$?
           elif [ "${{ github.event.inputs.test_run }}" = "@demo" ]; then
-            echo "🎭 Running DEMO tests..."
+            echo "🎭 Ejecutando tests de DEMO..."
             npm run test:demo || EXIT_CODE=$?
           elif [ "${{ github.event.inputs.test_run }}" = "@sanity" ]; then
-            echo "🔄 Running @sanity tests..."
+            echo "🔄 Ejecutando tests @sanity..."
             npm run test:sanity || EXIT_CODE=$?
           elif [ "${{ github.event.inputs.test_run }}" = "@smoke" ]; then
-            echo "💨 Running @smoke tests..."
+            echo "💨 Ejecutando tests @smoke..."
             npm run test:smoke || EXIT_CODE=$?
           elif [[ "${{ github.event.inputs.test_run }}" == *.spec.ts ]]; then
-            echo "🎯 Running specific test file..."
+            echo "🎯 Ejecutando archivo de test específico..."
             npx playwright test "${{ github.event.inputs.test_run }}" --project=${{ github.event.inputs.browser }} || EXIT_CODE=$?
           else
-            echo "🎯 Running default tests..."
+            echo "🎯 Ejecutando tests por defecto..."
             npm run test || EXIT_CODE=$?
           fi
           
-          echo "📋 Tests execution completed with exit code: ${EXIT_CODE:-0}"
+          echo "📋 Ejecución de tests completada con código de salida: ${EXIT_CODE:-0}"
 
       - name: 📸 Capture failure screenshots
         if: failure()
         run: |
-          echo "📸 Capturing failure evidence..."
+          echo "📸 Capturando evidencia de fallos..."
           find test-results -name "*.png" -o -name "*.webm" | head -10
           find test-results -name "trace.zip" | head -5
 
       - name: 🔍 Debug artifacts
         if: always()
         run: |
-          echo "🔍 ARTIFACT DEBUGGING"
+          echo "🔍 DEPURACIÓN DE ARTEFACTOS"
           echo "============================================"
           
-          echo "📁 Current directory:"
+          echo "📁 Directorio actual:"
           ls -la
           
           echo "📁 playwright-report:"
           if [ -d "playwright-report" ]; then
             ls -la playwright-report/
           else
-            echo "❌ playwright-report not found"
+            echo "❌ playwright-report no encontrado"
           fi
           
           echo "📁 test-results:"
           if [ -d "test-results" ]; then
             find test-results -type f | head -10
           else
-            echo "❌ test-results not found"
+            echo "❌ test-results no encontrado"
           fi
 
       - name: 📊 Upload test results
@@ -197,25 +197,25 @@ jobs:
     steps:
       - name: 📊 Generate sanity report
         run: |
-          echo "# 🧪 SANITY TEST RESULTS" >> $GITHUB_STEP_SUMMARY
+          echo "# 🧪 RESULTADOS DE TESTS SANITY" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Test Selection:** ${{ github.event.inputs.test_run }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Browser:** ${{ github.event.inputs.browser }}" >> $GITHUB_STEP_SUMMARY
-          echo "**OS:** ${{ github.event.inputs.os }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Selección de Test:** ${{ github.event.inputs.test_run }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Ambiente:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Navegador:** ${{ github.event.inputs.browser }}" >> $GITHUB_STEP_SUMMARY
+          echo "**SO:** ${{ github.event.inputs.os }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           if [ "${{ needs.sanity-tests.result }}" = "success" ]; then
-            echo "✅ **SANITY TESTS PASSED**" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **TESTS SANITY APROBADOS**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "- 🎯 Quick validation completed successfully" >> $GITHUB_STEP_SUMMARY
-            echo "- 📊 All critical functionality verified" >> $GITHUB_STEP_SUMMARY
+            echo "- 🎯 Validación rápida completada exitosamente" >> $GITHUB_STEP_SUMMARY
+            echo "- 📊 Toda la funcionalidad crítica verificada" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ **SANITY TESTS FAILED**" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **TESTS SANITY FALLARON**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "- ⚠️ Issues found in quick validation" >> $GITHUB_STEP_SUMMARY
-            echo "- 📝 Check test artifacts for details" >> $GITHUB_STEP_SUMMARY
+            echo "- ⚠️ Problemas encontrados en validación rápida" >> $GITHUB_STEP_SUMMARY
+            echo "- 📝 Revisa los artefactos de tests para detalles" >> $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📁 **Test artifacts available for download**" >> $GITHUB_STEP_SUMMARY
+          echo "📁 **Artefactos de tests disponibles para descarga**" >> $GITHUB_STEP_SUMMARY

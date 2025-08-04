@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Target environment'
+        description: 'Ambiente objetivo'
         required: true
         default: 'staging'
         type: choice
@@ -52,25 +52,25 @@ jobs:
           HOST: 0.0.0.0
           PLAYWRIGHT_BASE_URL: http://localhost:3000
         run: |
-          echo "🧪 Running smoke tests before deployment..."
+          echo "🧪 Ejecutando tests de smoke antes del despliegue..."
           
           # Verificar que el build existe
           if [ ! -d "dist" ]; then
-            echo "❌ Error: dist folder not found! Build failed."
+            echo "❌ Error: carpeta dist no encontrada! El build falló."
             exit 1
           fi
           
-          echo "✅ Build artifacts found, running smoke tests..."
+          echo "✅ Artefactos de build encontrados, ejecutando tests de smoke..."
           # Ejecutar solo tests @smoke que NO sean @demo
           npx playwright test --grep "@smoke" --grep-invert "@demo" || SMOKE_EXIT_CODE=$?
           
           # Si no hay smoke tests funcionales, ejecutar sanity tests
           if [ "${SMOKE_EXIT_CODE:-0}" -ne 0 ]; then
-            echo "🔄 Running sanity tests as fallback..."
-            npx playwright test --grep "@sanity" --grep-invert "@demo" || echo "⚠️ Tests completed with some failures, continuing deployment..."
+            echo "🔄 Ejecutando tests sanity como respaldo..."
+            npx playwright test --grep "@sanity" --grep-invert "@demo" || echo "⚠️ Tests completados con algunos fallos, continuando despliegue..."
           fi
           
-          echo "✅ Pre-deployment tests completed!"
+          echo "✅ Tests pre-despliegue completados!"
 
       - name: 📦 Create deployment package
         run: tar -czf deployment-package.tar.gz dist/ package.json
@@ -78,12 +78,12 @@ jobs:
       - name:  Deploy
         run: |
           TARGET_ENV="${{ github.event.inputs.environment || 'production' }}"
-          echo "🚀 Deploying to $TARGET_ENV environment..."
-          echo "✅ Deployment completed!"
+          echo "🚀 Desplegando en ambiente $TARGET_ENV..."
+          echo "✅ Despliegue completado!"
 
       - name: 📊 Summary
         run: |
-          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment**: ${{ github.event.inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status**: ✅ Success" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Resumen de Despliegue" >> $GITHUB_STEP_SUMMARY
+          echo "- **Ambiente**: ${{ github.event.inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Rama**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Estado**: ✅ Exitoso" >> $GITHUB_STEP_SUMMARY
