@@ -505,6 +505,9 @@ jobs:
           📋 Ver resultados completos:
           https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           
+          🌐 Ver reportes publicados en GitHub Pages:
+          https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+          
           ✅ Todos los artefactos de tests disponibles para descarga
           📊 Reportes HTML detallados incluidos" \
             -H "Title: Reporte de Tests de Regresión - ${{ github.ref_name }}" \
@@ -521,7 +524,7 @@ jobs:
             -d '{
               "value1": "Tests de Regresión - ${{ github.ref_name }}",
               "value2": "ID de Ejecución: ${{ github.run_id }}",
-              "value3": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              "value3": "Pages: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }} | GitHub: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }' || echo "Alternative notification failed"
 
       - name: 📧 Simple SMTP-free email (third method)
@@ -533,7 +536,7 @@ jobs:
               "personalizations": [{"to": [{"email": "alexander.windecker@tsoftglobal.com"}]}],
               "from": {"email": "noreply@github.com"},
               "subject": "Reporte de Tests de Regresión - ${{ github.ref_name }}",
-              "content": [{"type": "text/plain", "value": "Tests de regresión completados para la rama ${{ github.ref_name }}.\n\nVer resultados: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\nFecha: $(date)\nEjecutado por: ${{ github.actor }}"}]
+              "content": [{"type": "text/plain", "value": "Tests de regresión completados para la rama ${{ github.ref_name }}.\n\nVer resultados: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\nVer reportes en GitHub Pages: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}\n\nFecha: $(date)\nEjecutado por: ${{ github.actor }}"}]
             }' \
             "https://httpbin.org/post" || echo "Third method completed"
 
@@ -553,6 +556,9 @@ jobs:
           echo ""
           echo "📋 Ver resultados completos en:"
           echo "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo ""
+          echo "🌐 Ver reportes publicados en GitHub Pages:"
+          echo "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
           echo ""
           echo "✅ Todos los artefactos de tests están disponibles para descarga"
           echo "📊 Reportes HTML detallados incluidos en artefactos"
