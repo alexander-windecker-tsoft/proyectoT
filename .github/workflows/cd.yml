@@ -8,10 +8,10 @@ on:
       environment:
         description: 'Ambiente objetivo'
         required: true
-        default: 'staging'
+        default: 'qa'
         type: choice
         options:
-          - staging
+          - qa
           - production
 
 env:
