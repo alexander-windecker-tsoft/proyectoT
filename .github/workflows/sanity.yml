@@ -10,7 +10,7 @@ on:
         type: choice
         options:
           - dev
-          - staging
+          - qa
           - prod
       browser:
         description: 'Navegador para probar'
