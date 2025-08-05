@@ -163,7 +163,7 @@ test.describe('FEATURE - Control de Afiliados', () => {
         test(`Editar - Bloqueo de edición`, async ({ page }) => {
           await test.step('Verificar que no puede editar', async () => {
             await afiliadosListPage.navegarALista();
-            
+            //hola
             const editButtons = page.locator('.edit-button');
             const readOnlyBadges = page.locator('.read-only-badge');
             const editButtonCount = await editButtons.count().catch(() => 0);
