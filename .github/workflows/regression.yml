@@ -591,7 +591,8 @@ jobs:
           mkdir -p ./pages
           
           # Crear página principal con índice de reportes
-          cat > ./pages/index.html << 'EOF'
+          CURRENT_DATE=$(date)
+          cat > ./pages/index.html << EOF
           <!DOCTYPE html>
           <html lang="es">
           <head>
@@ -625,7 +626,7 @@ jobs:
               <div class="meta">
                 <strong>🔄 ID de Ejecución:</strong> ${{ github.run_id }}<br>
                 <strong>🌟 Rama:</strong> ${{ github.ref_name }}<br>
-                <strong>📅 Generado:</strong> $(date)<br>
+                <strong>📅 Generado:</strong> ${CURRENT_DATE}<br>
                 <strong>👤 Ejecutado por:</strong> ${{ github.actor }}
               </div>
               
