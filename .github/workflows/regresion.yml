@@ -5,6 +5,7 @@ on:
     branches: [ QA ]
   pull_request:
     branches: [ main ]
+    types: [opened, synchronize, reopened]
   
 
 # Permisos necesarios para comentar en PRs y crear issues
