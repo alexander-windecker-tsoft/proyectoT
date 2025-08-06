@@ -2,7 +2,8 @@ name: 🚀 CD - Continuous Deployment
 
 on:
   push:
-    branches: [ main, QA ]
+    pull_request:
+      branches: [ main ]
   workflow_dispatch:
     inputs:
       environment:
