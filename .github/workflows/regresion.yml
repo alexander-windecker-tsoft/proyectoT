@@ -2,29 +2,10 @@ name: 🔄 Regression - Complete Testing Suite
 
 on:
   push:
-    branches: [ main, QA ]
+    branches: [ QA ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
-    inputs:
-      test_environment:
-        description: 'Environment for regression'
-        required: false
-        default: 'all'
-        type: choice
-        options:
-          - all
-          - dev
-          - qa
-          - prod
-      browser_matrix:
-        description: 'Browsers to test'
-        required: false
-        default: 'chromium'
-        type: choice
-        options:
-          - chromium
-          - firefox
+  
 
 # Permisos necesarios para comentar en PRs y crear issues
 permissions:
@@ -57,17 +38,17 @@ jobs:
       - name: 🔍 Verify Playwright Config
         run: |
           if [ ! -f "playwright.config.ts" ]; then
-            echo "❌ Error: playwright.config.ts not found!"
+            echo "❌ Error: playwright.config.ts no encontrado!"
             exit 1
           fi
-          echo "✅ Playwright config found"
+          echo "✅ Configuración de Playwright encontrada"
           
           # Verificar que existe la configuración de ambientes
           if [ ! -d "tests/config" ]; then
-            echo "❌ Error: tests/config directory not found!"
+            echo "❌ Error: directorio tests/config no encontrado!"
             exit 1
           fi
-          echo "✅ Environment config directory found"
+          echo "✅ Directorio de configuración de ambientes encontrado"
 
       - name: 🧹 Lint Check
         run: npm run lint
@@ -108,12 +89,12 @@ jobs:
 
       - name: 🔍 Check test structure
         run: |
-          echo "📁 Test structure:"
+          echo "📁 Estructura de tests:"
           find tests -name "*.spec.ts" -o -name "*.test.ts" | head -20
           
           # Contar tests
           TEST_COUNT=$(find tests -name "*.spec.ts" -o -name "*.test.ts" | wc -l)
-          echo "📊 Total test files found: $TEST_COUNT"
+          echo "📊 Total de archivos de test encontrados: $TEST_COUNT"
 
       - name: 🔄 Run COMPLETE Regression Suite
         env:
@@ -124,11 +105,11 @@ jobs:
           # Forzar localhost para CI independientemente del ambiente
           PLAYWRIGHT_BASE_URL: http://localhost:3000
         run: |
-          echo "🔄 COMPLETE REGRESSION TESTING"
-          echo "🌐 Environment: ${{ matrix.environment }}"
-          echo "🧪 Browser: ${{ matrix.browser }}"
-          echo "📋 Running ALL TESTS - Full regression coverage"
-          echo "⚡ This includes: Login, CRUD, Permissions, Navigation"
+          echo "🔄 TESTING COMPLETO DE REGRESIÓN"
+          echo "🌐 Ambiente: ${{ matrix.environment }}"
+          echo "🧪 Navegador: ${{ matrix.browser }}"
+          echo "📋 Ejecutando TODOS LOS TESTS - Cobertura completa de regresión"
+          echo "⚡ Esto incluye: Login, CRUD, Permisos, Navegación"
           echo "============================================"
           
           # Crear directorios de reportes ANTES de ejecutar tests
@@ -137,12 +118,12 @@ jobs:
           
           # Verificar que el build existe antes de ejecutar tests
           if [ ! -d "dist" ]; then
-            echo "❌ Error: dist folder not found! Build may have failed."
+            echo "❌ Error: carpeta dist no encontrada! El build puede haber fallado."
             exit 1
           fi
           
-          echo "✅ Build artifacts found, proceeding with tests..."
-          echo "🔗 Using base URL: http://localhost:3000 (CI override)"
+          echo "✅ Artefactos de build encontrados, procediendo con los tests..."
+          echo "🔗 Usando URL base: http://localhost:3000 (override de CI)"
           
           # Ejecutar tests con reportes habilitados (excluyendo @demo)
           if [ "${{ matrix.environment }}" = "dev" ]; then
@@ -153,35 +134,35 @@ jobs:
             npm run test:regression:dev -- --reporter=html,json,list --grep-invert "@demo" || EXIT_CODE=$?
           fi
           
-          echo "📋 Tests execution completed with exit code: ${EXIT_CODE:-0}"
+          echo "📋 Ejecución de tests completada con código de salida: ${EXIT_CODE:-0}"
           
           # Verificar que se generaron los reportes
-          echo "📊 Checking generated reports..."
+          echo "📊 Verificando reportes generados..."
           if [ -f "test-results/results.json" ]; then
-            echo "✅ JSON report found"
-            cat test-results/results.json | jq '.stats' || echo "Could not parse results"
+            echo "✅ Reporte JSON encontrado"
+            cat test-results/results.json | jq '.stats' || echo "No se pudieron analizar los resultados"
           else
-            echo "⚠️ No JSON report found"
+            echo "⚠️ No se encontró reporte JSON"
           fi
           
           if [ -d "playwright-report" ] && [ "$(ls -A playwright-report)" ]; then
-            echo "✅ HTML report found"
+            echo "✅ Reporte HTML encontrado"
             ls -la playwright-report/
           else
-            echo "⚠️ No HTML report found or empty"
+            echo "⚠️ No se encontró reporte HTML o está vacío"
           fi
           
           if [ -d "test-results" ] && [ "$(ls -A test-results)" ]; then
-            echo "✅ Test results found"
+            echo "✅ Resultados de tests encontrados"
             find test-results -type f | head -20
           else
-            echo "⚠️ No test results found"
+            echo "⚠️ No se encontraron resultados de tests"
           fi
 
       - name: 📸 Capture failure screenshots
         if: failure()
         run: |
-          echo "📸 Capturing failure evidence..."
+          echo "📸 Capturando evidencia de fallos..."
           find test-results -name "*.png" -o -name "*.webm" | head -10
           
           # Listar archivos de trace si existen
@@ -190,32 +171,32 @@ jobs:
       - name: 🔍 Debug artifact contents
         if: always()
         run: |
-          echo "🔍 DEBUGGING ARTIFACT CONTENTS"
+          echo "🔍 DEPURANDO CONTENIDO DE ARTEFACTOS"
           echo "============================================"
           
-          echo "📁 Current directory structure:"
+          echo "📁 Estructura del directorio actual:"
           ls -la
           
           echo ""
-          echo "📁 playwright-report directory:"
+          echo "📁 Directorio playwright-report:"
           if [ -d "playwright-report" ]; then
             ls -la playwright-report/
             du -sh playwright-report/
           else
-            echo "❌ playwright-report directory not found"
+            echo "❌ Directorio playwright-report no encontrado"
           fi
           
           echo ""
-          echo "📁 test-results directory:"
+          echo "📁 Directorio test-results:"
           if [ -d "test-results" ]; then
             find test-results -type f -exec ls -la {} \; | head -20
             du -sh test-results/
           else
-            echo "❌ test-results directory not found"
+            echo "❌ Directorio test-results no encontrado"
           fi
           
           echo ""
-          echo "📊 Total files to be uploaded:"
+          echo "📊 Total de archivos a subir:"
           find playwright-report test-results -type f 2>/dev/null | wc -l || echo "0"
 
       - name: 📊 Upload complete regression results
@@ -261,11 +242,11 @@ jobs:
           TEST_ENV: prod
           CI: true
         run: |
-          echo "🎯 PRODUCTION CRITICAL PATH TESTING"
-          echo "🌐 Environment: Production"
-          echo "🧪 Browser: Chromium"
-          echo "📋 Running most critical functionality tests"
-          echo "⚡ Focus: Login, Core features, Data integrity"
+          echo "🎯 TESTING DE RUTA CRÍTICA DE PRODUCCIÓN"
+          echo "🌐 Ambiente: Producción"
+          echo "🧪 Navegador: Chromium"
+          echo "📋 Ejecutando tests de funcionalidad más crítica"
+          echo "⚡ Enfoque: Login, Funciones principales, Integridad de datos"
           echo "============================================"
           
           # Ejecutar tests de smoke en producción
@@ -312,16 +293,16 @@ jobs:
           echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          echo "## 📊 Test Execution Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Resumen de Ejecución de Tests" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Test Suite | Environment | Browser | Status | Artifacts |" >> $GITHUB_STEP_SUMMARY
-          echo "|------------|-------------|---------|--------|-----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Suite de Tests | Ambiente | Navegador | Estado | Artefactos |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------------|----------|-----------|--------|------------|" >> $GITHUB_STEP_SUMMARY
           
           # Procesar resultados de regresión
           for env in dev qa; do
             report_dir="./regression-reports/regression-${env}-chromium-1"
             if [ -d "$report_dir" ]; then
-              status="✅ Completed"
+              status="✅ Completado"
               
               # Verificar si hay fallos
               if [ -f "$report_dir/test-results/results.json" ]; then
@@ -330,11 +311,11 @@ jobs:
                 
                 failed=$(cat "$report_dir/test-results/results.json" | jq '.stats.failed' 2>/dev/null || echo "0")
                 if [ "$failed" -gt 0 ]; then
-                  status="❌ Failed ($failed tests)"
+                  status="❌ Falló ($failed tests)"
                 fi
               fi
               
-              echo "| 🔄 Full Regression | $env | chromium | $status | [📥 Download](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🔄 Regresión Completa | $env | chromium | $status | [📥 Descargar](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) |" >> $GITHUB_STEP_SUMMARY
             fi
           done
           
@@ -344,31 +325,31 @@ jobs:
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## 🎯 COMPLETE REGRESSION COVERAGE" >> $GITHUB_STEP_SUMMARY
+          echo "## 🎯 COBERTURA COMPLETA DE REGRESIÓN" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### ✅ What was comprehensively tested:" >> $GITHUB_STEP_SUMMARY
-          echo "- **🔐 Authentication System**: Complete login/logout flows" >> $GITHUB_STEP_SUMMARY
-          echo "- **👥 Role-based Access**: Admin, Inspector, Facturación permissions" >> $GITHUB_STEP_SUMMARY
-          echo "- **📝 CRUD Operations**: Create, Read, Update functionality" >> $GITHUB_STEP_SUMMARY
-          echo "- **🔄 Data Validation**: Form validation and error handling" >> $GITHUB_STEP_SUMMARY
-          echo "- **🧪 UI Components**: Interface elements and navigation" >> $GITHUB_STEP_SUMMARY
-          echo "- **⚡ Performance**: Load times and responsiveness" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          echo "### 🌐 Environment Coverage:" >> $GITHUB_STEP_SUMMARY
-          echo "- **Development**: Full test suite validation" >> $GITHUB_STEP_SUMMARY
-          echo "- **QA**: Production-like environment testing" >> $GITHUB_STEP_SUMMARY
-          echo "- **Production**: Critical path verification (@smoke tests)" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Lo que fue probado exhaustivamente:" >> $GITHUB_STEP_SUMMARY
+          echo "- **🔐 Sistema de Autenticación**: Flujos completos de login/logout" >> $GITHUB_STEP_SUMMARY
+          echo "- **👥 Acceso Basado en Roles**: Permisos de Admin, Inspector, Facturación" >> $GITHUB_STEP_SUMMARY
+          echo "- **📝 Operaciones CRUD**: Funcionalidad de Crear, Leer, Actualizar" >> $GITHUB_STEP_SUMMARY
+          echo "- **🔄 Validación de Datos**: Validación de formularios y manejo de errores" >> $GITHUB_STEP_SUMMARY
+          echo "- **🧪 Componentes de UI**: Elementos de interfaz y navegación" >> $GITHUB_STEP_SUMMARY
+          echo "- **⚡ Rendimiento**: Tiempos de carga y capacidad de respuesta" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          echo "### 📊 Test Files Included:" >> $GITHUB_STEP_SUMMARY
-          echo "Based on your test structure:" >> $GITHUB_STEP_SUMMARY
+          echo "### 🌐 Cobertura de Ambientes:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Desarrollo**: Validación completa de suite de tests" >> $GITHUB_STEP_SUMMARY
+          echo "- **QA**: Pruebas en ambiente similar a producción" >> $GITHUB_STEP_SUMMARY
+          echo "- **Producción**: Verificación de ruta crítica (tests @smoke)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### 📊 Archivos de Tests Incluidos:" >> $GITHUB_STEP_SUMMARY
+          echo "Basado en la estructura de tus tests:" >> $GITHUB_STEP_SUMMARY
           echo "- login.spec.ts" >> $GITHUB_STEP_SUMMARY
           echo "- afiliados-control.spec.ts" >> $GITHUB_STEP_SUMMARY
-          echo "- Additional spec files in tests/" >> $GITHUB_STEP_SUMMARY
+          echo "- Archivos spec adicionales en tests/" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          echo "## 🚀 DEPLOYMENT READINESS" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 PREPARACIÓN PARA DESPLIEGUE" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Determinar si todos los tests pasaron
@@ -384,22 +365,22 @@ jobs:
           done
           
           if [ "$all_passed" = true ]; then
-            echo "✅ **ALL REGRESSION TESTS PASSED**" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **TODOS LOS TESTS DE REGRESIÓN APROBADOS**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "- 🎯 Application is thoroughly tested and ready for production" >> $GITHUB_STEP_SUMMARY
-            echo "- 📊 Comprehensive coverage across all critical functionality" >> $GITHUB_STEP_SUMMARY
-            echo "- 🔒 Security and permissions validated" >> $GITHUB_STEP_SUMMARY
-            echo "- 💪 Confident deployment recommendation" >> $GITHUB_STEP_SUMMARY
+            echo "- 🎯 La aplicación está completamente probada y lista para producción" >> $GITHUB_STEP_SUMMARY
+            echo "- 📊 Cobertura integral de toda la funcionalidad crítica" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔒 Seguridad y permisos validados" >> $GITHUB_STEP_SUMMARY
+            echo "- 💪 Recomendación de despliegue con confianza" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ **SOME TESTS FAILED**" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **ALGUNOS TESTS FALLARON**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "- ⚠️ Review failed tests before deploying" >> $GITHUB_STEP_SUMMARY
-            echo "- 📝 Check test reports for details" >> $GITHUB_STEP_SUMMARY
-            echo "- 🔍 Fix issues and re-run regression suite" >> $GITHUB_STEP_SUMMARY
+            echo "- ⚠️ Revisar tests fallidos antes de desplegar" >> $GITHUB_STEP_SUMMARY
+            echo "- 📝 Verificar reportes de tests para detalles" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔍 Corregir problemas y re-ejecutar suite de regresión" >> $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📁 **Detailed HTML reports available in workflow artifacts**" >> $GITHUB_STEP_SUMMARY
+          echo "📁 **Reportes HTML detallados disponibles en artefactos del workflow**" >> $GITHUB_STEP_SUMMARY
 
       - name: 💬 Comment on PR
         if: github.event_name == 'pull_request'
@@ -416,11 +397,11 @@ jobs:
               if (fs.existsSync(devResults)) {
                 const data = JSON.parse(fs.readFileSync(devResults, 'utf8'));
                 if (data.stats.failed > 0) {
-                  devStatus = `❌ Failed (${data.stats.failed} tests)`;
+                  devStatus = `❌ Falló (${data.stats.failed} tests)`;
                 }
               }
             } catch (e) {
-              console.log('Could not read dev results');
+              console.log('No se pudo leer resultados de dev');
             }
             
             try {
@@ -428,29 +409,29 @@ jobs:
               if (fs.existsSync(qaResults)) {
                 const data = JSON.parse(fs.readFileSync(qaResults, 'utf8'));
                 if (data.stats.failed > 0) {
-                  qaStatus = `❌ Failed (${data.stats.failed} tests)`;
+                  qaStatus = `❌ Falló (${data.stats.failed} tests)`;
                 }
               }
             } catch (e) {
-              console.log('Could not read qa results');
+              console.log('No se pudo leer resultados de qa');
             }
             
-            const summary = `## 🔄 Regression Test Results
+            const summary = `## 🔄 Resultados de Tests de Regresión
             
-            | Environment | Status | Details |
-            |-------------|--------|---------|
-            | Development | ${devStatus} | Full regression suite |
-            | QA | ${qaStatus} | Full regression suite |
-            | Production | ✅ Passed | Critical path only |
+            | Ambiente | Estado | Detalles |
+            |----------|--------|----------|
+            | Desarrollo | ${devStatus} | Suite completa de regresión |
+            | QA | ${qaStatus} | Suite completa de regresión |
+            | Producción | ✅ Aprobado | Solo ruta crítica |
             
-            [View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            [Ver reporte detallado](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
             
-            ### 📋 Test Coverage
-            - Login flows
-            - CRUD operations  
-            - Role-based access
-            - Form validations
-            - UI/UX tests
+            ### 📋 Cobertura de Tests
+            - Flujos de login
+            - Operaciones CRUD  
+            - Acceso basado en roles
+            - Validaciones de formularios
+            - Tests de UI/UX
             `;
             
             github.rest.issues.createComment({
@@ -476,11 +457,11 @@ jobs:
           echo "🆔 Run ID: ${{ github.run_id }}"
           echo "� Triggered by: ${{ github.actor }}"
           echo ""
-          echo "📋 View complete results at:"
+          echo "📋 Ver resultados completos en:"
           echo "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           echo ""
-          echo "✅ All test artifacts are available for download"
-          echo "� Detailed HTML reports included in artifacts"
+          echo "✅ Todos los artefactos de tests están disponibles para descarga"
+          echo "📊 Reportes HTML detallados incluidos en artefactos"
           echo ""
           echo "💡 TIP: Para recibir notificaciones automáticas por email,"
           echo "    podemos configurarlo más adelante con un webhook simple"
@@ -495,23 +476,23 @@ jobs:
       - name: 📧 Send email using ntfy.sh (reliable free service)
         run: |
           # Usar ntfy.sh que es más confiable
-          curl -d "🔄 REGRESSION TEST COMPLETED
+          curl -d "🔄 TESTS DE REGRESIÓN COMPLETADOS
           
-          📅 Date: $(date)
-          🌟 Branch: ${{ github.ref_name }}
-          🆔 Run ID: ${{ github.run_id }}
-          👤 Triggered by: ${{ github.actor }}
+          📅 Fecha: $(date)
+          🌟 Rama: ${{ github.ref_name }}
+          🆔 ID de Ejecución: ${{ github.run_id }}
+          👤 Ejecutado por: ${{ github.actor }}
           
-          📋 View complete results:
+          📋 Ver resultados completos:
           https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           
-          ✅ All test artifacts available for download
-          📊 Detailed HTML reports included" \
-            -H "Title: Regression Test Report - ${{ github.ref_name }}" \
+          ✅ Todos los artefactos de tests disponibles para descarga
+          📊 Reportes HTML detallados incluidos" \
+            -H "Title: Reporte de Tests de Regresión - ${{ github.ref_name }}" \
             -H "Tags: regression,test,automation" \
             -H "Priority: 3" \
             -H "Email: alexander.windecker@tsoftglobal.com" \
-            ntfy.sh/proyectot-regression || echo "Primary notification failed"
+            ntfy.sh/proyectot-regression || echo "Notificación primaria falló"
 
       - name: 📧 Alternative email method (backup)
         run: |
@@ -519,10 +500,10 @@ jobs:
           curl -X POST "https://maker.ifttt.com/trigger/regression_test/with/key/dQw4w9WgXcQ" \
             -H "Content-Type: application/json" \
             -d '{
-              "value1": "Regression Test - ${{ github.ref_name }}",
-              "value2": "Run ID: ${{ github.run_id }}",
+              "value1": "Tests de Regresión - ${{ github.ref_name }}",
+              "value2": "ID de Ejecución: ${{ github.run_id }}",
               "value3": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            }' || echo "Alternative notification failed"
+            }' || echo "Notificación alternativa falló"
 
       - name: 📧 Simple SMTP-free email (third method)
         run: |
@@ -532,10 +513,10 @@ jobs:
             -d '{
               "personalizations": [{"to": [{"email": "alexander.windecker@tsoftglobal.com"}]}],
               "from": {"email": "noreply@github.com"},
-              "subject": "Regression Test Report - ${{ github.ref_name }}",
-              "content": [{"type": "text/plain", "value": "Regression testing completed for branch ${{ github.ref_name }}.\n\nView results: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\nDate: $(date)\nTriggered by: ${{ github.actor }}"}]
+              "subject": "Reporte de Tests de Regresión - ${{ github.ref_name }}",
+              "content": [{"type": "text/plain", "value": "Tests de regresión completados para la rama ${{ github.ref_name }}.\n\nVer resultados: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\nFecha: $(date)\nEjecutado por: ${{ github.actor }}"}]
             }' \
-            "https://httpbin.org/post" || echo "Third method completed"
+            "https://httpbin.org/post" || echo "Tercer método completado"
 
       - name: 📊 Summary notification
         run: |
@@ -557,7 +538,7 @@ jobs:
           echo "✅ All test artifacts are available for download"
           echo "📊 Detailed HTML reports included in artifacts"
           echo ""
-          echo "💡 Alternative: Check GitHub Actions tab for notifications"
+          echo "💡 Alternativa: Revisar pestaña GitHub Actions para notificaciones"
 
   # Job 7: Publicar reportes en GitHub Pages
   publish-reports:
@@ -688,7 +669,7 @@ jobs:
           </html>
           EOF
           
-          echo "✅ GitHub Pages content prepared"
+          echo "✅ Contenido de GitHub Pages preparado"
           ls -la ./pages/
 
       - name: 📤 Setup Pages
