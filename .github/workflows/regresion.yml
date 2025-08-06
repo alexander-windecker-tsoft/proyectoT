@@ -671,7 +671,7 @@ jobs:
           
           echo "✅ Contenido de GitHub Pages preparado"
           ls -la ./pages/
-
+          //hola
       - name: 📤 Setup Pages
         uses: actions/configure-pages@v4
 
